@@ -21,12 +21,12 @@ public:
 	virtual ~GLUTWrapper();
 	
 //--------------------------------------------------------------------------METHODS:
-
-
+	
 public:
 	void setDisplayFunction( void( *f )( ) );
-	void basicGLUTWindow( char* arguments );
+	void basicGLUTWindow();
 	void startLoop();
+
 protected:
 private:
 

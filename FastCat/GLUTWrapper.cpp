@@ -19,11 +19,11 @@ void defaultDisplay( void )
 //--------------------------------------------------------------------------METHODS:
 
 
-void GLUTWrapper::basicGLUTWindow( char* programFilePath )
+void GLUTWrapper::basicGLUTWindow()
 {
 	// glutInit thinks it's getting command line arguments
 	int numArgs = 1;
-	char* arguments[] = { programFilePath };
+	char* arguments[] = { "why do they even need this?" };
 	glutInit( &numArgs, arguments );
 
 	glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );

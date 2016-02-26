@@ -2,31 +2,27 @@
 #include <stdlib.h>
 #include <iostream>
 #include <string>
-#include "Dependencies\glew\glew.h"
-#include "Dependencies\freeglut\glut.h"
 #include "GLUTWrapper.h"
 
-//standard glut-based program functions
-void init( void );
-void resize( int, int );
-void display( void );
-void keypress( unsigned char, int, int );
-void cleanup( void );
+//-----------------------------------------------------------------------PROTOTYPES:
 
-void setDisplayFunction( void( *f )() );
-void blarg();
+void display();
+
+//-----------------------------------------------------------------------------MAIN:
 
 int main( int numArguments, char** arguments )
 {
-	char* path = "C:/Users/Alexander/Desktop/CIS660/FastCatAuthoringTool/x64/Debug/FastCat.exe";
 	GLUTWrapper glut;
-	glut.basicGLUTWindow( arguments[0] );
-
+	glut.basicGLUTWindow();
 	glut.setDisplayFunction( display );
 	glut.startLoop();
+
 	return 0;
 }
 
+//------------------------------------------------------------------------FUNCTIONS:
+
+// Function to render hello world (to be passed to glut)
 void display() 
 {
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
