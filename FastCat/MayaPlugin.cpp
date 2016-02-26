@@ -46,10 +46,9 @@ MStatus uninitializePlugin( MObject obj )
 	// Remove HelloMaya command from the Maya API environment.
 	status = plugin.deregisterCommand( "TestCommand" );
 
-	if( !status )
+	if( ! status )
 	{
 		status.perror( "deregisterCommand failed" );
 	}
-
 	return status;
 }

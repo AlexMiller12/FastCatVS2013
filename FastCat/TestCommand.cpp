@@ -31,16 +31,24 @@ void* TestCommand::creator()
 	return new TestCommand;
 }
 
-// This function is called when the Maya user types 'HelloMaya' in MEL.
+// This function is called when the Maya user types 'TestCommand' in MEL.
 MStatus TestCommand::doIt( const MArgList& args )
 {
 	// Create default values for arguments we will try to parse 
 	MStatus status = MS::kSuccess;
+	renderer.createWindow();
 	for( int i = 0; i < 50; i++ )
 	{
-		renderer.test();
+		MGlobal::displayInfo( "barbar" );
+		renderer.render();
 	}
-	
+	renderer.test();
+	while( ! renderer.shouldWindowClose() )
+	{
+		MGlobal::displayInfo( "rrrrrrrrr" );
+		renderer.render();
+	}
+	renderer.closeWindow();
 	return MS::kSuccess;
 }
 

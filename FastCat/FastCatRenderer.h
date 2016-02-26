@@ -1,12 +1,35 @@
+
+//Include GLEW  
+#include "Dependencies\glew\glew.h"
+
+//Include GLFW  
+#include "Dependencies\glfw\glfw3.h"
+
+#include <stdio.h>  
+#include <stdlib.h>  
+
+#include <Windows.h>
+
 class FastCatRenderer
 {
+	
+//----------------------------------------------------------------------------ENUMS:
+
+public:
+	enum FastCatStates
+	{
+		NEUTRAL, TESTING
+	};
+
 //------------------------------------------------------------------------CONSTANTS:
 	
 //---------------------------------------------------------------------------FIELDS:
 
 public:
 private:
-	
+	GLFWwindow* window;
+	FastCatStates state;
+
 //---------------------------------------------------------CONSTRUCTORS/DESTRUCTORS:
 	
 public:
@@ -16,7 +39,10 @@ public:
 //--------------------------------------------------------------------------METHODS:
 
 public:
-	void init();
+	void closeWindow();
+	void createWindow();
+	void render(); //TODO will be private if loop lives in this class
+	bool shouldWindowClose();
 	void test();
 
 private:
