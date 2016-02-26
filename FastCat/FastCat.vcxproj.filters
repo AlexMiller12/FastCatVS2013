@@ -18,19 +18,19 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GLContext.cpp">
+    <ClCompile Include="FastCatRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FastCatRenderer.cpp">
+    <ClCompile Include="GLUTWrapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GLContext.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="FastCatRenderer.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GLUTWrapper.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

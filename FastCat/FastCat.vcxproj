@@ -128,12 +128,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="FastCatRenderer.cpp" />
-    <ClCompile Include="GLContext.cpp" />
+    <ClCompile Include="GLUTWrapper.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FastCatRenderer.h" />
-    <ClInclude Include="GLContext.h" />
+    <ClInclude Include="GLUTWrapper.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
