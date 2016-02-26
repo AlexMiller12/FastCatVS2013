@@ -18,9 +18,6 @@
     <ClCompile Include="FastCatRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GLUTWrapper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MayaPlugin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -29,13 +26,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GLUTWrapper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="FastCatRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TestCommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MyUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

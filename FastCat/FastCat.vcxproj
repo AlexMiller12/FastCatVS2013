@@ -86,13 +86,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories> Dependencies\glew; Dependencies\freeglut; Dependencies\maya; Dependencies\glfw;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories> Dependencies\glew; Dependencies\maya; Dependencies\glfw;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_DEBUG;_WINDOWS;NT_PLUGIN;REQUIRE_IOSTREAM;_USRDLL;MAYAPLUGIN1_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>Dependencies\freeglut; Dependencies\glew; Dependencies\maya; Dependencies\glfw;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Foundation.lib;OpenMaya.lib;OpenMayaUI.lib;OpenMayaAnim.lib;OpenMayaFX.lib;OpenMayaRender.lib;Image.lib;glew32.lib;glu32.lib;freeglut.lib;opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>Dependencies\glew; Dependencies\maya; Dependencies\glfw;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Foundation.lib;OpenMaya.lib;OpenMayaUI.lib;OpenMayaAnim.lib;OpenMayaFX.lib;OpenMayaRender.lib;Image.lib;glew32.lib;glu32.lib;opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName).mll</OutputFile>
       <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
     </Link>
@@ -133,13 +133,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="FastCatRenderer.cpp" />
-    <ClCompile Include="GLUTWrapper.cpp" />
     <ClCompile Include="MayaPlugin.cpp" />
     <ClCompile Include="TestCommand.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FastCatRenderer.h" />
-    <ClInclude Include="GLUTWrapper.h" />
+    <ClInclude Include="MyUtil.h" />
     <ClInclude Include="TestCommand.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

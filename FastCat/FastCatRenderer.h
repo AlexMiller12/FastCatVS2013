@@ -1,4 +1,3 @@
-#include "GLUTWrapper.h"
 class FastCatRenderer
 {
 //------------------------------------------------------------------------CONSTANTS:
@@ -7,7 +6,6 @@ class FastCatRenderer
 
 public:
 private:
-	GLUTWrapper glut;
 	
 //---------------------------------------------------------CONSTRUCTORS/DESTRUCTORS:
 	
