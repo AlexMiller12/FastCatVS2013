@@ -1,1 +1,1 @@
--Need to put freeglut.dll, .obj, and exports file library in maya 2016 bin folder
+-Need to put glew.dll, glew32.dll, and glfw3.dll into maya 2016 bin folder

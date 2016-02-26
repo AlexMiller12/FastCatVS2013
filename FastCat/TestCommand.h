@@ -16,6 +16,7 @@ contained in hello_maya.cpp.
 //#include <MArgList.h>
 #include <maya/MSyntax.h>
 #include <maya/MArgDatabase.h>
+#include "FastCatRenderer.h"
 
 // A very, very basic Maya command.
 class TestCommand : public MPxCommand 
@@ -28,10 +29,13 @@ public:
 
 public:
 
+private:
+	FastCatRenderer renderer;
+
 //---------------------------------------------------------------------CONSTRUCTORS:
 
 public:
-	TestCommand() {};
+	TestCommand() { renderer.init(); };
 	
 //--------------------------------------------------------------------------METHODS:
 

@@ -36,30 +36,11 @@ MStatus TestCommand::doIt( const MArgList& args )
 {
 	// Create default values for arguments we will try to parse 
 	MStatus status = MS::kSuccess;
-	double id = -1.0;
-	MString userName = "John Doe";
-
-	MArgDatabase argData( syntax(), args );
-
-	if( argData.isFlagSet( idFlag ) )
+	for( int i = 0; i < 50; i++ )
 	{
-		argData.getFlagArgument( idFlag, 0, id );
+		renderer.test();
 	}
-	if( argData.isFlagSet( nameFlag ) )
-	{
-		argData.getFlagArgument( nameFlag, 0, userName );
-	}
-
-	// Create a MEL command string
-	MString commandString = "confirmDialog";
-	// Add title flag
-	commandString += " -t \"Hello Maya!!!!!!!\"";
-	// Add button flag
-	commandString += " -b OK";
-	// Add message flag
-	commandString += " -m \"" + userName + "\\nID: " + id + "\" ";
-
-	MGlobal::executeCommand( commandString );
+	
 	return MS::kSuccess;
 }
 

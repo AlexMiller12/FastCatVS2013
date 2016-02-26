@@ -1,16 +1,20 @@
-#include "FastCatRenderer.h"
+//#include "FastCatRenderer.h"
+
+#include <stdio.h>  
+#include <stdlib.h>  
 
 //-----------------------------------------------------------------------------MAIN:
 
 int main( int numArguments, char** arguments )
 {
-	FastCatRenderer renderer;
-
-	renderer.init();
+	//FastCatRenderer renderer;
+	printf( "hi" );
+	//renderer.init();
 		
 	while( true )
 	{
-		renderer.test();
+		//renderer.test();
+		printf( "hey" );
 	}
 	return 0;
 }
