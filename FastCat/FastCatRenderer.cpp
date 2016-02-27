@@ -4,7 +4,6 @@
 
 //---------------------------------------------------------CONSTRUCTORS/DESTRUCTORS:
 
-
 FastCatRenderer::FastCatRenderer()
 {
 	state = FastCatStates::NEUTRAL;

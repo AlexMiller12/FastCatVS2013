@@ -9,6 +9,7 @@ Contains definitions for the HelloMaya class methods declared in hello_maya.h.
 
 #include <maya\MGlobal.h>
 #include <string>
+#include "Singleton.h"
 
 //------------------------------------------------------------------------CONSTANTS:
 // For setting up visual studio:
@@ -36,6 +37,7 @@ MStatus TestCommand::doIt( const MArgList& args )
 {
 	// Create default values for arguments we will try to parse 
 	MStatus status = MS::kSuccess;
+	renderer = Singleton<FastCatRenderer>::Instance(); 
 	renderer.createWindow();
 	for( int i = 0; i < 50; i++ )
 	{

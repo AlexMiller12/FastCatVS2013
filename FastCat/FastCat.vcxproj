@@ -134,11 +134,13 @@
   <ItemGroup>
     <ClCompile Include="FastCatRenderer.cpp" />
     <ClCompile Include="MayaPlugin.cpp" />
+    <ClCompile Include="Singleton.cpp" />
     <ClCompile Include="TestCommand.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FastCatRenderer.h" />
     <ClInclude Include="MyUtil.h" />
+    <ClInclude Include="Singleton.h" />
     <ClInclude Include="TestCommand.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
