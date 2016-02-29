@@ -37,20 +37,12 @@ MStatus TestCommand::doIt( const MArgList& args )
 {
 	// Create default values for arguments we will try to parse 
 	MStatus status = MS::kSuccess;
-	renderer = Singleton<FastCatRenderer>::Instance(); 
+	FastCatRenderer renderer = Singleton<FastCatRenderer>::instance();
+
 	renderer.createWindow();
-	for( int i = 0; i < 50; i++ )
-	{
-		MGlobal::displayInfo( "barbar" );
-		renderer.render();
-	}
 	renderer.test();
-	while( ! renderer.shouldWindowClose() )
-	{
-		MGlobal::displayInfo( "rrrrrrrrr" );
-		renderer.render();
-	}
-	renderer.closeWindow();
+
+	//renderer.closeWindow();
 	return MS::kSuccess;
 }
 

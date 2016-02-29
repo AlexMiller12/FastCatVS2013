@@ -14,6 +14,8 @@ registered and deregistered by these functions. The same goes for custom nodes.
 #include <maya\MFnPlugin.h>
 
 #include "TestCommand.h"
+#include "FastCatRenderer.h"
+#include "Singleton.h"
 
 //------------------------------------------------------------------------FUNCTIONS:
 
@@ -24,7 +26,7 @@ MStatus initializePlugin( MObject obj )
 
 	MStatus	status;
 
-	// Register HelloMaya command with the Maya API.
+	// Register TestCommand command with the Maya API.
 	status = plugin.registerCommand( "TestCommand",
 									 TestCommand::creator,
 									 TestCommand::newSyntax );
@@ -33,6 +35,9 @@ MStatus initializePlugin( MObject obj )
 	{
 		status.perror( "registerCommand failed" );
 	}
+
+	//TODO temp?
+	//Singleton<FastCatRenderer>::instance();
 
 	return status;
 }
@@ -43,8 +48,10 @@ MStatus uninitializePlugin( MObject obj )
 	MFnPlugin plugin( obj );
 	MStatus	status;
 
-	// Remove HelloMaya command from the Maya API environment.
+	// Remove TestCommand command from the Maya API environment.
 	status = plugin.deregisterCommand( "TestCommand" );
+	// Delete static singleton instance
+	Singleton<FastCatRenderer>::cleanUp();
 
 	if( ! status )
 	{

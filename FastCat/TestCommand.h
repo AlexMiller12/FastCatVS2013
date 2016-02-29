@@ -28,9 +28,8 @@ class TestCommand : public MPxCommand
 public:
 
 private:
-	FastCatRenderer renderer;
-
-
+	//FastCatRenderer renderer;
+	
 //---------------------------------------------------------------------CONSTRUCTORS:
 
 public:

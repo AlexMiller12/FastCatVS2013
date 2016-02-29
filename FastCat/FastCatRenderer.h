@@ -1,8 +1,8 @@
+#ifndef FC_RENDERER
+#define FC_RENDERER
 
 //Include GLEW  
 #include "Dependencies\glew\glew.h"
-
-//Include GLFW  
 #include "Dependencies\glfw\glfw3.h"
 
 #include <stdio.h>  
@@ -48,3 +48,5 @@ public:
 private:
 	void testPass();
 };
+
+#endif

@@ -42,7 +42,11 @@ void FastCatRenderer::closeWindow()
 
 void FastCatRenderer::createWindow()
 {
-	MGlobal::displayInfo( "createWindow" );
+	if( window != NULL )
+	{
+		MGlobal::displayInfo( "FastCatRenderer -- Window already created" );
+		return;
+	}
 	//Set the error callback  
 	glfwSetErrorCallback( error_callback );
 
@@ -80,10 +84,16 @@ bool FastCatRenderer::shouldWindowClose()
 }
 
 //TODO: temp
+int i = 0;
 void FastCatRenderer::test()
 {
+	if( i == 0 )   state = FastCatStates::NEUTRAL;
+	else if( i == 1 )   state = FastCatStates::TESTING;
+	else if( i++ == 2 )   closeWindow();
+	
+	render();
 	// Set render state
-	state = FastCatStates::TESTING;
+	//state = FastCatStates::TESTING;
 
 	// Close window and clean up
 	//closeWindow();
