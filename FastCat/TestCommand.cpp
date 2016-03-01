@@ -40,6 +40,7 @@ MStatus TestCommand::doIt( const MArgList& args )
 	FastCatRenderer renderer = Singleton<FastCatRenderer>::instance();
 
 	renderer.createWindow();
+	renderer.init();
 	renderer.test();
 
 	//renderer.closeWindow();

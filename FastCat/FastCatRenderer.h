@@ -41,6 +41,7 @@ public:
 public:
 	void closeWindow();
 	void createWindow();
+	void init();
 	void render(); //TODO will be private if loop lives in this class
 	bool shouldWindowClose();
 	void test();
