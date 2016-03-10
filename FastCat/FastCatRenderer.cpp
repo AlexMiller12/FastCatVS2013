@@ -1,6 +1,8 @@
 
 #include "FastCatRenderer.h"
 #include "Dependencies\maya\maya\MGlobal.h";
+#include "ShaderHelper.h"
+#include "CommonInclude.h"
 
 
 GLuint vbo = 0;
@@ -59,6 +61,8 @@ void FastCatRenderer::closeWindow()
 {
 	MGlobal::displayInfo( "closeWindow" );
 
+	ShaderHelper::cleanup();
+
 	//Close OpenGL window and terminate GLFW  
 	glfwDestroyWindow( window );
 	//Finalize and clean up GLFW  
@@ -107,17 +111,30 @@ void FastCatRenderer::init()
 	//This function makes the context of the specified window current on the calling thread.   
 	glfwMakeContextCurrent( window );
 
-	GLuint vs = glCreateShader( GL_VERTEX_SHADER );
-	glShaderSource( vs, 1, &vertex_shader, NULL );
-	glCompileShader( vs );
-	GLuint fs = glCreateShader( GL_FRAGMENT_SHADER );
-	glShaderSource( fs, 1, &fragment_shader, NULL );
-	glCompileShader( fs );
+	std::string vsFileName(SHADER_DIR);
+	std::string psFileName(SHADER_DIR);
+	vsFileName += "/test_vs.glsl";
+	psFileName += "/test_ps.glsl";
 
-	shader_programme = glCreateProgram();
-	glAttachShader( shader_programme, fs );
-	glAttachShader( shader_programme, vs );
-	glLinkProgram( shader_programme );
+	std::vector<GLenum> types;
+	types.push_back(GL_VERTEX_SHADER);
+	types.push_back(GL_FRAGMENT_SHADER);
+	std::vector<const char *> fileNames;
+	fileNames.push_back(vsFileName.c_str());
+	fileNames.push_back(psFileName.c_str());
+	ShaderHelper::createProgramWithShaders(types, fileNames, shader_programme);
+
+	//GLuint vs = glCreateShader( GL_VERTEX_SHADER );
+	//glShaderSource( vs, 1, &vertex_shader, NULL );
+	//glCompileShader( vs );
+	//GLuint fs = glCreateShader( GL_FRAGMENT_SHADER );
+	//glShaderSource( fs, 1, &fragment_shader, NULL );
+	//glCompileShader( fs );
+
+	//shader_programme = glCreateProgram();
+	//glAttachShader( shader_programme, fs );
+	//glAttachShader( shader_programme, vs );
+	//glLinkProgram( shader_programme );
 
 	glGenBuffers( 1, &vbo );
 	glBindBuffer( GL_ARRAY_BUFFER, vbo );

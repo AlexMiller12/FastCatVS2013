@@ -1,1 +1,8 @@
 -Need to put glew.dll, glew32.dll, and glfw3.dll into maya 2016 bin folder
+
+# Update 3/10/2016
+Implemented a basic ShaderHelper class. Currently, it does:
+1. Create a shader from a file;
+2. Create a shader program from one or more shader files;
+3. ShaderHelper::getUniformLocation() that returns a uniform location providing
+   program name/ID and name of the uniform. It returns -1 if uniform is not found.
