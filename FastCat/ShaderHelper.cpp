@@ -31,7 +31,7 @@ bool ShaderHelper::createProgramWithShaders(const std::vector<GLenum> &types, co
 		{
 			for (int j = 0; j < shaders.size(); ++j)
 			{
-				glDeleteShader(shaders[i]);
+				glDeleteShader(shaders[j]);
 			}
 			glDeleteProgram(program);
 			return false;
@@ -102,8 +102,35 @@ GLint ShaderHelper::getUniformLocation(GLuint program, const char *_name)
 
 	if (it_program == uniformLocations.end())
 	{
-		MGlobal::displayError("Shader program doesn't exist");
-		return -1;
+		bool programExist = false;
+
+		for (int i = 0; i < programs.size(); ++i)
+		{
+			if (program == programs[i])
+			{
+				programExist = true;
+				break;
+			}
+		}
+
+		if (!programExist)
+		{
+			MGlobal::displayError("Shader program doesn't exist");
+			return -1;
+		}
+		else
+		{
+			GLint loc = glGetUniformLocation(program, _name);
+			if (loc < 0)
+			{
+				std::string msg(_name);
+				msg += ": Uniform doesn't exist";
+				MGlobal::displayError(msg.c_str());
+				return -1;
+			}
+			uniformLocations[program][name] = loc;
+			return loc;
+		}
 	}
 
 	std::unordered_map<std::string, GLint>::const_iterator it = it_program->second.find(name);
@@ -111,6 +138,13 @@ GLint ShaderHelper::getUniformLocation(GLuint program, const char *_name)
 	if (it == it_program->second.end())
 	{
 		GLint loc = glGetUniformLocation(program, _name);
+		if (loc < 0)
+		{
+			std::string msg(_name);
+			msg += ": Uniform doesn't exist";
+			MGlobal::displayError(msg.c_str());
+			return -1;
+		}
 		uniformLocations[program][name] = loc;
 		return loc;
 	}

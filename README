@@ -1,5 +1,11 @@
 -Need to put glew.dll, glew32.dll, and glfw3.dll into maya 2016 bin folder
 
+# Update 3/16/2016
+1. Get mesh data from Maya;
+2. Basic Lambert shading for test rendering.
+To Use: create a poly-mesh in Maya with only tris and quads. Then select it and type "fastcat"
+in the command window.
+
 # Update 3/10/2016
 Implemented a basic ShaderHelper class. Currently, it does:
 1. Create a shader from a file;

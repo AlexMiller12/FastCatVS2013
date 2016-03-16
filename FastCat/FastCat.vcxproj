@@ -132,14 +132,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CCLevel.cpp" />
     <ClCompile Include="CommonInclude.cpp" />
+    <ClCompile Include="FastCatCmd.cpp" />
     <ClCompile Include="FastCatRenderer.cpp" />
     <ClCompile Include="MayaPlugin.cpp" />
     <ClCompile Include="ShaderHelper.cpp" />
     <ClCompile Include="TestCommand.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="CCLevel.h" />
     <ClInclude Include="CommonInclude.h" />
+    <ClInclude Include="FastCatCmd.h" />
     <ClInclude Include="FastCatRenderer.h" />
     <ClInclude Include="MyUtil.h" />
     <ClInclude Include="ShaderHelper.h" />

@@ -5,10 +5,13 @@
 #include "Dependencies\glew\glew.h"
 #include "Dependencies\glfw\glfw3.h"
 
+#include <memory>
 #include <stdio.h>  
 #include <stdlib.h>  
-
 #include <Windows.h>
+
+#include "CCLevel.h"
+#include "Camera.h"
 
 class FastCatRenderer
 {
@@ -26,6 +29,10 @@ public:
 //---------------------------------------------------------------------------FIELDS:
 
 public:
+	std::shared_ptr<CCLevel> testMesh;
+	bool isReady;
+	std::shared_ptr<Camera> camera;
+
 private:
 	GLFWwindow* window;
 	FastCatStates state;
@@ -42,6 +49,7 @@ public:
 	void closeWindow();
 	void createWindow();
 	void init();
+
 	void render(); //TODO will be private if loop lives in this class
 	bool shouldWindowClose();
 	void test();

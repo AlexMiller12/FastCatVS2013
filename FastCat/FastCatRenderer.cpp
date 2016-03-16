@@ -31,7 +31,7 @@ const char* fragment_shader =
 
 //---------------------------------------------------------CONSTRUCTORS/DESTRUCTORS:
 
-FastCatRenderer::FastCatRenderer()
+FastCatRenderer::FastCatRenderer() : isReady(false)
 {
 	state = FastCatStates::NEUTRAL;
 }
@@ -73,7 +73,7 @@ void FastCatRenderer::createWindow()
 {
 	if( window != NULL )
 	{
-		MGlobal::displayInfo( "FastCatRenderer -- Window already created" );
+		//MGlobal::displayInfo( "FastCatRenderer -- Window already created" );
 		return;
 	}
 	//Set the error callback  
@@ -85,7 +85,7 @@ void FastCatRenderer::createWindow()
 		return;
 	}
 	//Create a window and create its OpenGL context  
-	window = glfwCreateWindow( 640, 480, "Test Window", NULL, NULL );
+	window = glfwCreateWindow( WINDOW_WIDTH, WINDOW_HEIGHT, "Test Window", NULL, NULL );
 	//If the window couldn't be created  
 	if( ! window )
 	{
@@ -97,6 +97,7 @@ void FastCatRenderer::createWindow()
 	//Sets the key callback  
 	glfwSetKeyCallback( window, key_callback );
 	//Initialize GLEW  
+	glewExperimental = true;
 	GLenum err = glewInit();
 	//If GLEW hasn't initialized  
 	if( err != GLEW_OK )
@@ -136,15 +137,15 @@ void FastCatRenderer::init()
 	//glAttachShader( shader_programme, vs );
 	//glLinkProgram( shader_programme );
 
-	glGenBuffers( 1, &vbo );
-	glBindBuffer( GL_ARRAY_BUFFER, vbo );
-	glBufferData( GL_ARRAY_BUFFER, 9 * sizeof( float ), points, GL_STATIC_DRAW );
+	//glGenBuffers( 1, &vbo );
+	//glBindBuffer( GL_ARRAY_BUFFER, vbo );
+	//glBufferData( GL_ARRAY_BUFFER, 9 * sizeof( float ), points, GL_STATIC_DRAW );
 	
-	glGenVertexArrays( 1, &vao );
-	glBindVertexArray( vao );
-	glEnableVertexAttribArray( 0 );
-	glBindBuffer( GL_ARRAY_BUFFER, vbo );
-	glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, NULL );
+	//glGenVertexArrays( 1, &vao );
+	//glBindVertexArray( vao );
+	//glEnableVertexAttribArray( 0 );
+	//glBindBuffer( GL_ARRAY_BUFFER, vbo );
+	//glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, NULL );
 }
 
 // Returns true if the ESC key had been pressed or if the window had been closed  
@@ -220,10 +221,20 @@ void FastCatRenderer::testPass()
 
 	// wipe the drawing surface clear
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	//glClear(GL_COLOR_BUFFER_BIT);
 	glUseProgram( shader_programme );
-	glBindVertexArray( vao );
+
+	testMesh->bindBuffers();
+
+	glm::mat4 MVP = camera->proj * camera->view; // model matrix is identity
+	GLint loc = ShaderHelper::getUniformLocation(shader_programme, "MVP");
+	glUniformMatrix4fv(loc, 1, GL_FALSE, &MVP[0][0]);
+	
+	glDrawArrays(GL_TRIANGLES, 0, testMesh->vertexBuffer.size() / 6);
+
+	//glBindVertexArray( vao );
 	// draw points 0-3 from the currently bound VAO with current in-use shader
-	glDrawArrays( GL_TRIANGLES, 0, 3 );
+	//glDrawArrays( GL_TRIANGLES, 0, 3 );
 	// update other events like input handling 
 	glfwPollEvents();
 	// put the stuff we've been drawing onto the display
