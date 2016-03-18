@@ -1,5 +1,9 @@
 -Need to put glew.dll, glew32.dll, and glfw3.dll into maya 2016 bin folder
 
+# Update 3/17/2016
+1. Added data structures that store connectivity info and component(ie. vertex, edge, face)
+related meta-data.
+
 # Update 3/16/2016
 1. Get mesh data from Maya;
 2. Basic Lambert shading for test rendering.
