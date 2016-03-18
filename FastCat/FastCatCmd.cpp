@@ -54,75 +54,10 @@ MStatus FastCatCmd::doIt(const MArgList &args)
 
 	node = dagPath.node();
 
-	MStatus toMeshStatus;
-	MFnMesh fnMesh(node, &toMeshStatus); // Fn stands for a function set
+	std::shared_ptr<ControlMesh> mesh = std::make_shared<ControlMesh>();
+	mesh->initBaseMeshFromMaya(node);
 
-	if (MS::kSuccess != toMeshStatus)
-	{
-		MGlobal::displayError("Selection is not a polymesh");
-		return MS::kFailure;
-	}
-
-	// Get vertex positions
-	std::shared_ptr<CCLevel> level = std::make_shared<CCLevel>();
-	MPointArray vertices;
-	fnMesh.getPoints(vertices); // in object space
-	MFloatVectorArray normals;
-	fnMesh.getNormals(normals);
-
-	// TODO: get UVs for displacement mapping
-
-	// Get the indices of face vertices
-	MItMeshPolygon itFace(node);
-	while (!itFace.isDone())
-	{
-		int nv = itFace.polygonVertexCount(); // number of vertices
-		if (nv == 4)
-		{
-			int vidx, nidx;
-			for (int i = 0; i < 3; ++i)
-			{
-				vidx = itFace.vertexIndex(i % nv);
-				nidx = itFace.normalIndex(i % nv);
-				level->vertexBuffer.push_back(vertices[vidx].x);
-				level->vertexBuffer.push_back(vertices[vidx].y);
-				level->vertexBuffer.push_back(vertices[vidx].z);
-				level->vertexBuffer.push_back(normals[nidx].x);
-				level->vertexBuffer.push_back(normals[nidx].y);
-				level->vertexBuffer.push_back(normals[nidx].z);
-			}
-			for (int i = 2; i < 5; ++i)
-			{
-				vidx = itFace.vertexIndex(i % nv);
-				nidx = itFace.normalIndex(i % nv);
-				level->vertexBuffer.push_back(vertices[vidx].x);
-				level->vertexBuffer.push_back(vertices[vidx].y);
-				level->vertexBuffer.push_back(vertices[vidx].z);
-				level->vertexBuffer.push_back(normals[nidx].x);
-				level->vertexBuffer.push_back(normals[nidx].y);
-				level->vertexBuffer.push_back(normals[nidx].z);
-			}
-		}
-		else if (nv == 3)
-		{
-			int vidx, nidx;
-			for (int i = 0; i < 3; ++i)
-			{
-				vidx = itFace.vertexIndex(i % nv);
-				nidx = itFace.normalIndex(i % nv);
-				level->vertexBuffer.push_back(vertices[vidx].x);
-				level->vertexBuffer.push_back(vertices[vidx].y);
-				level->vertexBuffer.push_back(vertices[vidx].z);
-				level->vertexBuffer.push_back(normals[nidx].x);
-				level->vertexBuffer.push_back(normals[nidx].y);
-				level->vertexBuffer.push_back(normals[nidx].z);
-			}
-		}
-
-		itFace.next();
-	}
-
-	testRenderer.testMesh = level;
+	testRenderer.testMesh = mesh;
 	if (!testRenderer.isReady)
 	{
 		testRenderer.createWindow();

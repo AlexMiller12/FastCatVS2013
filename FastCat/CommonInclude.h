@@ -4,6 +4,8 @@
 #include <string>
 #include "Dependencies/glew/glew.h"
 #include "Dependencies/glfw/glfw3.h"
+#include "Dependencies/glm/glm.hpp"
+#include "Dependencies/glm/gtc/matrix_transform.hpp"
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600

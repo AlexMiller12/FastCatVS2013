@@ -135,6 +135,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CCLevel.cpp" />
     <ClCompile Include="CommonInclude.cpp" />
+    <ClCompile Include="ControlMesh.cpp" />
     <ClCompile Include="FastCatCmd.cpp" />
     <ClCompile Include="FastCatRenderer.cpp" />
     <ClCompile Include="MayaPlugin.cpp" />
@@ -145,8 +146,10 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CCLevel.h" />
     <ClInclude Include="CommonInclude.h" />
+    <ClInclude Include="ControlMesh.h" />
     <ClInclude Include="FastCatCmd.h" />
     <ClInclude Include="FastCatRenderer.h" />
+    <ClInclude Include="MeshUtility.h" />
     <ClInclude Include="MyUtil.h" />
     <ClInclude Include="ShaderHelper.h" />
     <ClInclude Include="Singleton.h" />

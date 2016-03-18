@@ -10,7 +10,7 @@
 #include <stdlib.h>  
 #include <Windows.h>
 
-#include "CCLevel.h"
+#include "ControlMesh.h"
 #include "Camera.h"
 
 class FastCatRenderer
@@ -29,7 +29,7 @@ public:
 //---------------------------------------------------------------------------FIELDS:
 
 public:
-	std::shared_ptr<CCLevel> testMesh;
+	std::shared_ptr<ControlMesh> testMesh;
 	bool isReady;
 	std::shared_ptr<Camera> camera;
 

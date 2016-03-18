@@ -224,13 +224,13 @@ void FastCatRenderer::testPass()
 	//glClear(GL_COLOR_BUFFER_BIT);
 	glUseProgram( shader_programme );
 
-	testMesh->bindBuffers();
+	testMesh->bindDebugBuffers(0);
 
 	glm::mat4 MVP = camera->proj * camera->view; // model matrix is identity
 	GLint loc = ShaderHelper::getUniformLocation(shader_programme, "MVP");
 	glUniformMatrix4fv(loc, 1, GL_FALSE, &MVP[0][0]);
 	
-	glDrawArrays(GL_TRIANGLES, 0, testMesh->vertexBuffer.size() / 6);
+	glDrawArrays(GL_TRIANGLES, 0, testMesh->getNumVerticesDebug(0));
 
 	//glBindVertexArray( vao );
 	// draw points 0-3 from the currently bound VAO with current in-use shader
@@ -239,4 +239,7 @@ void FastCatRenderer::testPass()
 	glfwPollEvents();
 	// put the stuff we've been drawing onto the display
 	glfwSwapBuffers( window );
+
+	glBindVertexArray(0); // unbind
+	testMesh->clearDebugBuffers();
 }
