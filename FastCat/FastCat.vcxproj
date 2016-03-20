@@ -139,6 +139,7 @@
     <ClCompile Include="FastCatCmd.cpp" />
     <ClCompile Include="FastCatRenderer.cpp" />
     <ClCompile Include="MayaPlugin.cpp" />
+    <ClCompile Include="MeshUtility.cpp" />
     <ClCompile Include="ShaderHelper.cpp" />
     <ClCompile Include="TestCommand.cpp" />
   </ItemGroup>

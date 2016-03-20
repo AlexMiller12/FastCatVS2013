@@ -214,6 +214,7 @@ void FastCatRenderer::render()
 // Function to render hello world (to be passed to glut)
 void FastCatRenderer::testPass()
 {
+	testMesh->adaptiveCCAllLevels();
 
 	// TODO: Temp?
 	glEnable( GL_DEPTH_TEST ); // enable depth-testing
@@ -224,13 +225,13 @@ void FastCatRenderer::testPass()
 	//glClear(GL_COLOR_BUFFER_BIT);
 	glUseProgram( shader_programme );
 
-	testMesh->bindDebugBuffers(0);
+	testMesh->bindDebugBuffers(3);
 
 	glm::mat4 MVP = camera->proj * camera->view; // model matrix is identity
 	GLint loc = ShaderHelper::getUniformLocation(shader_programme, "MVP");
 	glUniformMatrix4fv(loc, 1, GL_FALSE, &MVP[0][0]);
 	
-	glDrawArrays(GL_TRIANGLES, 0, testMesh->getNumVerticesDebug(0));
+	glDrawArrays(GL_TRIANGLES, 0, testMesh->getNumVerticesDebug(3));
 
 	//glBindVertexArray( vao );
 	// draw points 0-3 from the currently bound VAO with current in-use shader

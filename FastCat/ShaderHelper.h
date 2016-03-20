@@ -17,7 +17,7 @@ public:
 
 	static bool createShaderFromFile(GLenum type, const char *fileName, GLuint &shader);
 
-	static GLint getUniformLocation(GLuint program, const char *_name);
+	static GLint getUniformLocation(GLuint program, const char *_name, bool suppressError = false);
 
 	static void cleanup();
 

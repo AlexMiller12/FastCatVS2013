@@ -95,7 +95,7 @@ bool ShaderHelper::createShaderFromFile(GLenum type, const char *fileName, GLuin
 }
 
 
-GLint ShaderHelper::getUniformLocation(GLuint program, const char *_name)
+GLint ShaderHelper::getUniformLocation(GLuint program, const char *_name, bool suppressError)
 {
 	std::string name(_name);
 	std::unordered_map<GLuint, std::unordered_map<std::string, GLint> >::const_iterator it_program = uniformLocations.find(program);
@@ -121,10 +121,10 @@ GLint ShaderHelper::getUniformLocation(GLuint program, const char *_name)
 		else
 		{
 			GLint loc = glGetUniformLocation(program, _name);
-			if (loc < 0)
+			if (loc < 0 && !suppressError)
 			{
 				std::string msg(_name);
-				msg += ": Uniform doesn't exist";
+				msg += ": Uniform doesn't exist or inactive";
 				MGlobal::displayError(msg.c_str());
 				return -1;
 			}
@@ -138,10 +138,10 @@ GLint ShaderHelper::getUniformLocation(GLuint program, const char *_name)
 	if (it == it_program->second.end())
 	{
 		GLint loc = glGetUniformLocation(program, _name);
-		if (loc < 0)
+		if (loc < 0 && !suppressError)
 		{
 			std::string msg(_name);
-			msg += ": Uniform doesn't exist";
+			msg += ": Uniform doesn't exist or inactive";
 			MGlobal::displayError(msg.c_str());
 			return -1;
 		}

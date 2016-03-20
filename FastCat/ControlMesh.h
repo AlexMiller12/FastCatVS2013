@@ -1,19 +1,31 @@
 #ifndef CONTROL_MESH_H
 #define CONTROL_MESH_H
 
+#include <memory>
+
 #include "CCLevel.h"
 
 
 class ControlMesh
 {
 public:
-	std::vector<CCLevel> levels; // levels[0] is unsubdivided
+	bool levelsGenerated;
+	int maxSubdivisionLevel;
+	int numVerticesAllLevels;
+	std::vector<std::shared_ptr<CCLevel> > levels; // levels[0] is unsubdivided
 	std::vector<float> verticesRawShared; // shared by all CCLevels
 
-	ControlMesh() : debugBuffersGenerated(false) {}
+	bool isGLSetup;
+	GLuint vbo;
+	GLuint fpProgram, epProgram, vpProgram;
+
+	ControlMesh() : maxSubdivisionLevel(6), isGLSetup(false), levelsGenerated(false), debugBuffersGenerated(false) {}
 	virtual ~ControlMesh() {}
 
 	MStatus initBaseMeshFromMaya(MObject shapeNode);
+
+	void adaptiveCCAllLevels();
+
 
 	// For debugging purpose
 	bool debugBuffersGenerated;

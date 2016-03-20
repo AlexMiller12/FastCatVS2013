@@ -56,6 +56,7 @@ MStatus FastCatCmd::doIt(const MArgList &args)
 
 	std::shared_ptr<ControlMesh> mesh = std::make_shared<ControlMesh>();
 	mesh->initBaseMeshFromMaya(node);
+	mesh->maxSubdivisionLevel = 3;
 
 	testRenderer.testMesh = mesh;
 	if (!testRenderer.isReady)
