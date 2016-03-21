@@ -14,8 +14,8 @@
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
-#define SHADER_DIR "C:/Users/Jian Ru/Documents/CIS660/fastcat2013/FastCatVS2013/FastCat/shaders"
-
+//#define SHADER_DIR "C:/Users/Jian Ru/Documents/CIS660/fastcat2013/FastCatVS2013/FastCat/shaders"
+#define SHADER_DIR "C:/Users/Alexander/Desktop/CIS660/FastCatAuthoringTool/FastCat/shaders"
 
 bool readWholeFile(const char *fileName, std::string &ret_content);
 

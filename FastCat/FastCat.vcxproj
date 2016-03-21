@@ -43,7 +43,7 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -66,6 +66,9 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetExt>.mll</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetExt>.mll</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -132,29 +135,44 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AlexCamera.cpp" />
+    <ClCompile Include="BasicShaders.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CCLevel.cpp" />
     <ClCompile Include="CommonInclude.cpp" />
     <ClCompile Include="ControlMesh.cpp" />
     <ClCompile Include="FastCatCmd.cpp" />
     <ClCompile Include="FastCatRenderer.cpp" />
+    <ClCompile Include="GLUtil.cpp" />
     <ClCompile Include="MayaPlugin.cpp" />
     <ClCompile Include="MeshUtility.cpp" />
+    <ClCompile Include="QuadTessellatorProgram.cpp" />
+    <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="ShaderHelper.cpp" />
+    <ClCompile Include="ShaderProgram.cpp" />
     <ClCompile Include="TestCommand.cpp" />
+    <ClCompile Include="WireFrameProgram.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AlexCamera.h" />
+    <ClInclude Include="BasicShaders.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CCLevel.h" />
     <ClInclude Include="CommonInclude.h" />
     <ClInclude Include="ControlMesh.h" />
     <ClInclude Include="FastCatCmd.h" />
     <ClInclude Include="FastCatRenderer.h" />
+    <ClInclude Include="GLUtil.h" />
+    <ClInclude Include="gumbo.h" />
     <ClInclude Include="MeshUtility.h" />
     <ClInclude Include="MyUtil.h" />
+    <ClInclude Include="QuadTessellatorProgram.h" />
+    <ClInclude Include="Renderer.h" />
     <ClInclude Include="ShaderHelper.h" />
+    <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="TestCommand.h" />
+    <ClInclude Include="WireFrameProgram.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
