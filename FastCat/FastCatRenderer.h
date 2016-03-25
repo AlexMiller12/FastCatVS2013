@@ -10,10 +10,11 @@
 #include <stdlib.h>  
 #include <Windows.h>
 
+#include "Renderer.h"
 #include "ControlMesh.h"
 #include "Camera.h"
 
-class FastCatRenderer
+class FastCatRenderer : Renderer
 {
 	
 //----------------------------------------------------------------------------ENUMS:
@@ -34,7 +35,6 @@ public:
 	std::shared_ptr<Camera> camera;
 
 private:
-	GLFWwindow* window;
 	FastCatStates state;
 
 //---------------------------------------------------------CONSTRUCTORS/DESTRUCTORS:
@@ -46,12 +46,8 @@ public:
 //--------------------------------------------------------------------------METHODS:
 
 public:
-	void closeWindow();
-	void createWindow();
 	void init();
-
-	void render(); //TODO will be private if loop lives in this class
-	bool shouldWindowClose();
+	void render();
 	void test();
 
 private:

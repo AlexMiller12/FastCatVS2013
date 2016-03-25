@@ -39,7 +39,6 @@ MStatus TestCommand::doIt( const MArgList& args )
 	MStatus status = MS::kSuccess;
 	FastCatRenderer renderer = Singleton<FastCatRenderer>::instance();
 
-	renderer.createWindow();
 	renderer.init();
 	renderer.test();
 

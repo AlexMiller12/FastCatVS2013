@@ -57,101 +57,23 @@ void key_callback( GLFWwindow* window, int key, int scancode, int action, int mo
 
 //--------------------------------------------------------------------------METHODS:
 
-void FastCatRenderer::closeWindow()
-{
-	MGlobal::displayInfo( "closeWindow" );
 
-	ShaderHelper::cleanup();
-
-	//Close OpenGL window and terminate GLFW  
-	glfwDestroyWindow( window );
-	//Finalize and clean up GLFW  
-	glfwTerminate();
-}
-
-void FastCatRenderer::createWindow()
-{
-	if( window != NULL )
-	{
-		//MGlobal::displayInfo( "FastCatRenderer -- Window already created" );
-		return;
-	}
-	//Set the error callback  
-	glfwSetErrorCallback( error_callback );
-
-	//Initialize GLFW  
-	if( ! glfwInit() )
-	{
-		return;
-	}
-	//Create a window and create its OpenGL context  
-	window = glfwCreateWindow( WINDOW_WIDTH, WINDOW_HEIGHT, "Test Window", NULL, NULL );
-	//If the window couldn't be created  
-	if( ! window )
-	{
-		fprintf( stderr, "Failed to open GLFW window.\n" );
-		glfwTerminate();
-	}
-	//This function makes the context of the specified window current on the calling thread.   
-	glfwMakeContextCurrent( window );
-	//Sets the key callback  
-	glfwSetKeyCallback( window, key_callback );
-	//Initialize GLEW  
-	glewExperimental = true;
-	GLenum err = glewInit();
-	//If GLEW hasn't initialized  
-	if( err != GLEW_OK )
-	{
-		fprintf( stderr, "Error: %s\n", glewGetErrorString( err ) );
-		return;
-	}
-}
 void FastCatRenderer::init()
 {
+	createWindow();
 
-	//This function makes the context of the specified window current on the calling thread.   
-	glfwMakeContextCurrent( window );
-
-	std::string vsFileName(SHADER_DIR);
-	std::string psFileName(SHADER_DIR);
+	std::string vsFileName( SHADER_DIR );
+	std::string psFileName( SHADER_DIR );
 	vsFileName += "/test_vs.glsl";
 	psFileName += "/test_ps.glsl";
 
 	std::vector<GLenum> types;
-	types.push_back(GL_VERTEX_SHADER);
-	types.push_back(GL_FRAGMENT_SHADER);
+	types.push_back( GL_VERTEX_SHADER );
+	types.push_back( GL_FRAGMENT_SHADER );
 	std::vector<const char *> fileNames;
-	fileNames.push_back(vsFileName.c_str());
-	fileNames.push_back(psFileName.c_str());
-	ShaderHelper::createProgramWithShaders(types, fileNames, shader_programme);
-
-	//GLuint vs = glCreateShader( GL_VERTEX_SHADER );
-	//glShaderSource( vs, 1, &vertex_shader, NULL );
-	//glCompileShader( vs );
-	//GLuint fs = glCreateShader( GL_FRAGMENT_SHADER );
-	//glShaderSource( fs, 1, &fragment_shader, NULL );
-	//glCompileShader( fs );
-
-	//shader_programme = glCreateProgram();
-	//glAttachShader( shader_programme, fs );
-	//glAttachShader( shader_programme, vs );
-	//glLinkProgram( shader_programme );
-
-	//glGenBuffers( 1, &vbo );
-	//glBindBuffer( GL_ARRAY_BUFFER, vbo );
-	//glBufferData( GL_ARRAY_BUFFER, 9 * sizeof( float ), points, GL_STATIC_DRAW );
-	
-	//glGenVertexArrays( 1, &vao );
-	//glBindVertexArray( vao );
-	//glEnableVertexAttribArray( 0 );
-	//glBindBuffer( GL_ARRAY_BUFFER, vbo );
-	//glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, NULL );
-}
-
-// Returns true if the ESC key had been pressed or if the window had been closed  
-bool FastCatRenderer::shouldWindowClose()
-{
-	return window != NULL  &&  glfwWindowShouldClose( window );
+	fileNames.push_back( vsFileName.c_str() );
+	fileNames.push_back( psFileName.c_str() );
+	ShaderHelper::createProgramWithShaders( types, fileNames, shader_programme );
 }
 
 //TODO: temp
@@ -164,17 +86,6 @@ void FastCatRenderer::test()
 		return;
 	}
 	testPass();
-	//if( i == 0 )   state = FastCatStates::NEUTRAL;
-	//else if( i == 1 )   state = FastCatStates::TESTING;
-	//else if( i++ == 2 )   closeWindow();
-	//render();
-
-	// Set render state
-	//state = FastCatStates::TESTING;
-
-	// Close window and clean up
-	//closeWindow();
-
 }
 
 //--------------------------------------------------------------------------HELPERS:

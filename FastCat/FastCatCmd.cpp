@@ -20,7 +20,6 @@ MSyntax FastCatCmd::newSyntax()
 	return syntax;
 }
 
-
 // Get mesh data from the selected mesh
 // Fail if the selected is not mesh or there are more other than one selection
 MStatus FastCatCmd::doIt(const MArgList &args)
@@ -59,9 +58,8 @@ MStatus FastCatCmd::doIt(const MArgList &args)
 	mesh->maxSubdivisionLevel = 3;
 
 	testRenderer.testMesh = mesh;
-	if (!testRenderer.isReady)
+	if ( ! testRenderer.isReady )
 	{
-		testRenderer.createWindow();
 		testRenderer.init(); // load shaders and create a program
 		testRenderer.camera = Camera::createCamera(WINDOW_WIDTH, WINDOW_HEIGHT);
 		testRenderer.isReady = true;
