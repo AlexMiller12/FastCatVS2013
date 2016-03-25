@@ -38,7 +38,6 @@ void CCLevel::runSubdivisionTables( GLuint vbo )
 	glFinish();
 }
 
-
 void CCLevel::setCSUniforms( GLuint program )
 {
 	GLint numFacePointsLoc = ShaderHelper::getUniformLocation( program, "numFacePoints", true );
@@ -66,7 +65,6 @@ void CCLevel::setCSUniforms( GLuint program )
 		glUniform1i( srcOffsetLoc, firstVertexOffset );
 }
 
-
 void CCLevel::appendFaceVertexIndices( int offset, Face *face, std::vector<int> &indices )
 {
 	int numVertices = face->valence;
@@ -78,7 +76,6 @@ void CCLevel::appendFaceVertexIndices( int offset, Face *face, std::vector<int> 
 		indices[offset + i] = static_cast<int>( vs[i]->idx ); // indices are relative to firstVertexOffset
 	}
 }
-
 
 void CCLevel::appendEdgeVertexIndices( int offset, Edge *edge, std::vector<int> &indices )
 {
