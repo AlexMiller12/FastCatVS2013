@@ -14,7 +14,6 @@ public:
 	int newIdx = -1; // index of the corresponding point in the next subdivision level
 	int valence = 0;
 	bool isTagged = false; // is tagged for subdivision in the current level
-	bool wasTagged = false; // was tagged for subdivision in the last level
 	Edge *edge = NULL; // one of the edges going out from this vertex
 
 	bool isUnevaluable();
@@ -120,12 +119,15 @@ public:
 class Face
 {
 public:
-	int newIdx = -1;
 	int valence = 0;
-	bool isMarkedForSubdivision = false;
 	Edge *right = NULL; // Edge on the right side of the face
+	
+	bool isMarkedForSubdivision = false;
+	bool wasMarkedForSubdivision = false; // true if the parent of this face was marked
+	int newIdx = -1;
 
 	int numCreases();
+	bool hasTriangleHead();
 
 	inline void rotateCCW() { right = right->fPrev(); }
 	inline void rotateCW() { right = right->fNext(); }
@@ -139,6 +141,14 @@ public:
 
 	// Includes self
 	void getOneRingNeighbourFaces(std::set<Face *> &neighbours);
+
+	// Get the 16 indices of control points
+	// @outIndices need to be resized before calling this method
+	// 12 13 14 15
+	// 8  9  10 11
+	// 4  5  6  7
+	// 0  1  2  3
+	void getOneRingIndices(int firstVertexOffset, unsigned *outIndices);
 };
 
 #endif // MESH_UTILITY_H

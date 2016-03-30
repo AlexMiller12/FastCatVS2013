@@ -42,6 +42,7 @@ public:
 private:
 	// For debugging purpose
 	void createDebugBuffers();
+	void createPatchTypeDebugBuffers();
 };
 
 #endif // CONTROL_MESH_H

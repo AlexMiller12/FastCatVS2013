@@ -167,6 +167,23 @@ int Face::numCreases()
 }
 
 
+bool Face::hasTriangleHead()
+{
+	Edge *cur = right;
+
+	do
+	{
+		if (cur->isTriangleHead)
+		{
+			return true;
+		}
+		cur = cur->fNext();
+	} while (cur != right);
+
+	return false;
+}
+
+
 void Face::getVertices(std::set<Vertex *> &vs)
 {
 	Edge *cur = right;
@@ -231,4 +248,32 @@ void Face::getOneRingNeighbourFaces(std::set<Face *> &neighbours)
 
 		cur = cur->fNext();
 	} while (cur != right);
+}
+
+
+void Face::getOneRingIndices(int firstVertexOffset, unsigned *outIndices)
+{
+	assert(valence == 4);
+	const int numIndices = 16;
+	Edge *cur = right;
+	std::vector<unsigned> indexCache;
+	indexCache.reserve(numIndices);
+	int reorderMap[numIndices] = { 6, 7, 2, 3, 10, 14, 11, 15, 9, 8, 13, 12, 5, 1, 4, 0 };
+
+	do
+	{
+		assert(cur->origin->valence == 4);
+
+		indexCache.push_back(cur->origin->idx + firstVertexOffset);
+		indexCache.push_back(cur->vPrev()->dest->idx + firstVertexOffset);
+		indexCache.push_back(cur->vPrev()->vPrev()->dest->idx + firstVertexOffset);
+		indexCache.push_back(cur->vPrev()->vPrev()->fNext()->dest->idx + firstVertexOffset);
+
+		cur = cur->fNext();
+	} while (cur != right);
+
+	for (int i = 0; i < numIndices; ++i)
+	{
+		outIndices[reorderMap[i]] = indexCache[i];
+	}
 }

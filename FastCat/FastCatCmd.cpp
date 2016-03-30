@@ -10,6 +10,10 @@
 #include <maya/MItMeshPolygon.h>
 #include <memory>
 
+#include <Windows.h>
+#include <process.h>
+#include <sstream>
+
 
 MSyntax FastCatCmd::newSyntax()
 {
@@ -20,13 +24,52 @@ MSyntax FastCatCmd::newSyntax()
 	return syntax;
 }
 
+
+struct ThreadDataGL
+{
+	float baseTessFactor;
+	std::shared_ptr<Camera> camera;
+	std::shared_ptr<ControlMesh> mesh;
+} threadDataGL;
+
+HANDLE handleThreadGL = NULL;
+HANDLE handleCloseWindowEvent = NULL;
+
+
+unsigned int __stdcall threadProcGL(void* data)
+{
+	ThreadDataGL *pData = reinterpret_cast<ThreadDataGL *>(data);
+
+	FastCatRenderer mainRenderer(pData->baseTessFactor, pData->mesh, pData->camera);
+
+	if (!mainRenderer.isReady)
+	{
+		mainRenderer.createWindow();
+		mainRenderer.init(); // load shaders and create a program
+		mainRenderer.isReady = true;
+	}
+
+	while (!glfwWindowShouldClose(mainRenderer.window) &&
+		WaitForSingleObject(handleCloseWindowEvent, 0) != WAIT_OBJECT_0)
+	{
+		// render one frame
+		mainRenderer.test();
+
+		glfwPollEvents();
+		glfwSwapBuffers(mainRenderer.window);
+	}
+
+	mainRenderer.closeWindow();
+
+	return 0;
+}
+
+
 // Get mesh data from the selected mesh
 // Fail if the selected is not mesh or there are more other than one selection
 MStatus FastCatCmd::doIt(const MArgList &args)
 {
 	// For testing only
-	static FastCatRenderer testRenderer;
-
 	MSelectionList curSel;
 	MGlobal::getActiveSelectionList(curSel);
 
@@ -53,18 +96,61 @@ MStatus FastCatCmd::doIt(const MArgList &args)
 
 	node = dagPath.node();
 
+	std::shared_ptr<Camera> camera = Camera::createCamera(WINDOW_WIDTH, WINDOW_HEIGHT);
+
+	float baseTessFactor = 16.0f;
 	std::shared_ptr<ControlMesh> mesh = std::make_shared<ControlMesh>();
 	mesh->initBaseMeshFromMaya(node);
-	mesh->maxSubdivisionLevel = 3;
+	mesh->maxSubdivisionLevel = ceil(log2(baseTessFactor));
 
-	testRenderer.testMesh = mesh;
-	if ( ! testRenderer.isReady )
+	if (!handleCloseWindowEvent)
 	{
-		testRenderer.init(); // load shaders and create a program
-		testRenderer.camera = Camera::createCamera(WINDOW_WIDTH, WINDOW_HEIGHT);
-		testRenderer.isReady = true;
+		handleCloseWindowEvent = CreateEvent(NULL, TRUE, FALSE, TEXT("CloseWindowEvent"));
+		if (!handleCloseWindowEvent)
+		{
+			MGlobal::displayError("Cannot create CloseWindowEvent");
+			return MS::kFailure;
+		}
 	}
-	testRenderer.test();
+
+	if (handleThreadGL)
+	{
+		// signal the thread to terminate
+		if (!SetEvent(handleCloseWindowEvent))
+		{
+			MGlobal::displayError("Failed to set event CloseWidnowEvent");
+			return MS::kFailure;
+		}
+
+		// wait until it has terminated
+		DWORD dwWaitResult;
+		dwWaitResult = WaitForSingleObject(handleThreadGL, INFINITE);
+
+		if (dwWaitResult != WAIT_OBJECT_0)
+		{
+			std::stringstream ss;
+			ss << "WaitForSingleObject failed (" << GetLastError() << ")";
+			MGlobal::displayError(ss.str().c_str());
+			return MS::kFailure;
+		}
+
+		if (!ResetEvent(handleCloseWindowEvent))
+		{
+			MGlobal::displayError("Failed to reset event CloseWidnowEvent");
+			return MS::kFailure;
+		}
+
+		// resource is not release before the handle is closed
+		CloseHandle(handleThreadGL);
+		handleThreadGL = NULL;
+	}
+
+	// create a separate thread for OpenGL rendering
+	threadDataGL.baseTessFactor = baseTessFactor;
+	threadDataGL.camera = camera;
+	threadDataGL.mesh = mesh;
+
+	handleThreadGL = (HANDLE)_beginthreadex(0, 0, threadProcGL, &threadDataGL, 0, 0);
 
 	return MS::kSuccess;
 }

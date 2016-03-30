@@ -36,11 +36,12 @@ void* TestCommand::creator()
 MStatus TestCommand::doIt( const MArgList& args )
 {
 	// Create default values for arguments we will try to parse 
-	MStatus status = MS::kSuccess;
-	FastCatRenderer renderer = Singleton<FastCatRenderer>::instance();
+	//MStatus status = MS::kSuccess;
+	//FastCatRenderer renderer = Singleton<FastCatRenderer>::instance();
 
-	renderer.init();
-	renderer.test();
+	//renderer.createWindow();
+	//renderer.init();
+	//renderer.test();
 
 	//renderer.closeWindow();
 	return MS::kSuccess;

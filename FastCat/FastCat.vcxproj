@@ -146,6 +146,7 @@
     <ClCompile Include="GLUtil.cpp" />
     <ClCompile Include="MayaPlugin.cpp" />
     <ClCompile Include="MeshUtility.cpp" />
+    <ClCompile Include="PatchRenderer.cpp" />
     <ClCompile Include="QuadTessellatorProgram.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="ShaderHelper.cpp" />
@@ -166,6 +167,7 @@
     <ClInclude Include="gumbo.h" />
     <ClInclude Include="MeshUtility.h" />
     <ClInclude Include="MyUtil.h" />
+    <ClInclude Include="PatchRenderer.h" />
     <ClInclude Include="QuadTessellatorProgram.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="ShaderHelper.h" />

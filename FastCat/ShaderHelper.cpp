@@ -69,24 +69,24 @@ bool ShaderHelper::createProgramWithShaders(const std::vector<GLenum> &types, co
 bool ShaderHelper::createShaderFromFile(GLenum type, const char *fileName, GLuint &shader)
 {
 	std::string shaderSrc;
-	readWholeFile( fileName, shaderSrc );
+	readWholeFile(fileName, shaderSrc);
 
-	shader = glCreateShader( type );
+	shader = glCreateShader(type);
 	const char *srcRaw = shaderSrc.c_str();
-	glShaderSource( shader, 1, &srcRaw, NULL );
-	glCompileShader( shader );
+	glShaderSource(shader, 1, &srcRaw, NULL);
+	glCompileShader(shader);
 
 	// Check for errors
 	GLint status = GL_FALSE;
 	int infoLogLength = 0;
-	glGetShaderiv( shader, GL_COMPILE_STATUS, &status );
-	glGetShaderiv( shader, GL_INFO_LOG_LENGTH, &infoLogLength );
-	if( infoLogLength > 0 ) {
-		std::vector<char> msg( infoLogLength + 1 );
-		glGetShaderInfoLog( shader, infoLogLength, NULL, &msg[0] );
-		MGlobal::displayError( msg.data() );
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
+	if (infoLogLength > 0) {
+		std::vector<char> msg(infoLogLength + 1);
+		glGetShaderInfoLog(shader, infoLogLength, NULL, &msg[0]);
+		MGlobal::displayError(msg.data());
 	}
-	if( !status )
+	if (!status)
 	{
 		return false; // failed
 	}

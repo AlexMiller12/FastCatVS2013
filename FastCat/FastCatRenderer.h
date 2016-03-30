@@ -7,14 +7,13 @@
 
 #include <memory>
 #include <stdio.h>  
-#include <stdlib.h>  
-#include <Windows.h>
+#include <stdlib.h>
 
-#include "Renderer.h"
 #include "ControlMesh.h"
 #include "Camera.h"
+#include "PatchRenderer.h"
 
-class FastCatRenderer : Renderer
+class FastCatRenderer
 {
 	
 //----------------------------------------------------------------------------ENUMS:
@@ -30,25 +29,45 @@ public:
 //---------------------------------------------------------------------------FIELDS:
 
 public:
-	std::shared_ptr<ControlMesh> testMesh;
 	bool isReady;
+	float baseTessFactor;
+	std::shared_ptr<ControlMesh> controlMesh;
 	std::shared_ptr<Camera> camera;
 
-private:
+	std::shared_ptr<FullPatchNoSharpRenderer> fullPatchNoSharpRenderer;
+
+	bool perFrameBufferGenerated;
+	GLuint perFrameBufferName;
+
+	bool perLevelBufferGenerated;
+	GLuint perLevelBufferName;
+
+	GLFWwindow* window;
 	FastCatStates state;
 
 //---------------------------------------------------------CONSTRUCTORS/DESTRUCTORS:
 	
 public:
-	FastCatRenderer();
+	FastCatRenderer(float btf, std::shared_ptr<ControlMesh> cm, std::shared_ptr<Camera> c);
 	virtual ~FastCatRenderer();
 	
 //--------------------------------------------------------------------------METHODS:
 
 public:
+	void closeWindow();
+	void createWindow();
 	void init();
-	void render();
+
+	void render(); //TODO will be private if loop lives in this class
+	bool shouldWindowClose();
 	void test();
+
+	// @lightDir should point to the light
+	// @znzf is the distance between near and far clips
+	virtual void setPerFrameUniformBlock(const glm::vec3 &lightDir, float znzf);
+
+	virtual void setPerLevelUniformBlock(float tessfactor, float tessfactorNextLevel, float maxTessfactor,
+		int level, int firstVertexOffset, const glm::vec4 &color);
 
 private:
 	void testPass();

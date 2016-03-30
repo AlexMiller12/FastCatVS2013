@@ -17,6 +17,14 @@ public:
 	std::vector<Edge> elist;
 	std::vector<Face> flist;
 
+	bool isBaseLevel;
+	bool patchesClassified;
+	std::vector<Face *> endPatches;
+	std::vector<Face *> fullPatchesNoSharp;
+	std::vector<Face *> fullPatchesSharp;
+	std::vector<Face *> partialPatchesNoSharp;
+	std::vector<Face *> partialPatchesSharp;
+
 	bool bufferGenerated;
 	GLuint vao;
 	int firstVertexOffset; // offset of the first vertex in the shared vertex bufffer
@@ -25,23 +33,31 @@ public:
 	GLuint epProgram;
 	GLuint vpProgram;
 
-	CCLevel() : bufferGenerated(false), firstVertexOffset(-1) {}
-	virtual ~CCLevel() {}
+	CCLevel();
+	virtual ~CCLevel();
 
 	void bindBuffers(GLuint vbo);
 
 	// Initialize *this as a base level (unsubdivided mesh)
 	// numVertices - number of vertices in the base level
 	// itFace - iterator to the first face of the mesh
-	void createBaseLevel(int numVertices, MItMeshPolygon itFace);
+	void createBaseLevel(int numVertices, MItMeshPolygon &itFace);
 
 	// Construct the next CCLevel and tables for computing vertex positions in the next level
 	// New vertex positions are not computed after call to this method
 	std::shared_ptr<CCLevel> adaptiveCatmullClark();
 
-	// TODO
+	// Mark the end patches (patches around features). No actual subdivision is done in this method.
+	// Only use it with the last subdivision level.
+	void markEndPatches();
+
 	// Compute vertex positions for next level by dispatching corresponding CSs
 	void runSubdivisionTables(GLuint vbo);
+
+	// Classify the faces in flist according what types of patches they are
+	// and put them into different collections.
+	// Only call this method after calling adaptiveCatmullClark() or markEndPatches()
+	void classifyPatches();
 
 private:
 	std::unordered_map<unsigned, std::unordered_map<unsigned, Edge *> > lut;
@@ -78,13 +94,15 @@ private:
 	void addSubFaces(Face *parent, int edgePointStart, int vertexPointStart);
 
 	// Put the indices of @face's vertices into @indices
+	// @indices need to be resized before calling
 	void appendFaceVertexIndices(int offset, Face *face, std::vector<int> &indices);
 	
 	// Put the indices of vertices needed to compute the edge point into @indices
+	// @indices need to be resized before calling
 	void appendEdgeVertexIndices(int offset, Edge *edge, std::vector<int> &indices);
 	
 	// Update tables according to the configuration of @vertex (i.e. corner, boundary, crease, dart, interior)
-	// Don't resize tables before head
+	// Don't resize tables beforehead
 	void updateVertexPointTables(Vertex *vertex, std::vector<int> &ovpc1c2Table, std::vector<int> &neighbourIndexTable,
 								 std::vector<float> &sharpnessTable);
 
