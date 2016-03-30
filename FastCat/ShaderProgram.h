@@ -10,7 +10,7 @@
 #include "GLUtil.h"
 
 using namespace std;
-using namespace glm;
+using glm::vec3; using glm::vec4; using glm::mat3; using glm::mat4;
 
 class ShaderProgram
 {
@@ -69,6 +69,7 @@ public:
 
 public:
 	bool attachShader( const char* source, GLenum type );
+	bool attachShader( string source, GLenum type );
 	
 	bool bindToVAO(); // TODO private? 
 	bool createVBO( string attributeName, GLuint attributeindex );
@@ -90,6 +91,7 @@ public:
 	bool setUniform( string uniformName, vec4 value );
 	bool setUniform( string uniformName, float value );
 
+	bool setIndices( GLuint indices[], int numFaces, GLenum usage = GL_STATIC_DRAW );
 	bool setIndices( GLushort indices[], int numFaces, GLenum usage = GL_STATIC_DRAW );
 	bool setIndices( vector<GLushort> indices, GLenum usage = GL_STATIC_DRAW );
 
@@ -101,6 +103,11 @@ public:
 					 GLfloat data[], 
 					 int dataLength, 
 					 GLenum usage = GL_STATIC_DRAW );
+
+	bool shareExistingVBO( string attributeName, 
+						   GLuint attributeindex,
+						   GLuint vboHandle );
+
 	void use();
 
 private:

@@ -64,7 +64,6 @@ unsigned int __stdcall threadProcGL(void* data)
 	return 0;
 }
 
-
 // Get mesh data from the selected mesh
 // Fail if the selected is not mesh or there are more other than one selection
 MStatus FastCatCmd::doIt(const MArgList &args)

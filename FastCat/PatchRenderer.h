@@ -3,6 +3,7 @@
 
 #include "ControlMesh.h"
 #include "Camera.h"
+#include "FullPatchProgram.h"
 
 
 // Base class for renderer of all types of patches
@@ -45,6 +46,7 @@ protected:
 class FullPatchRenderer : public PatchRenderer
 {
 public:
+	vector<FullPatchProgram> programs;
 	std::vector<int> numIndices; // number of indices in each level
 	std::vector<GLuint> ibos; // GL index buffers for all levels
 	std::vector<std::vector<unsigned> > fullPatchIndexBuffers; // each level has one index buffer
@@ -64,6 +66,8 @@ public:
 class FullPatchNoSharpRenderer : public FullPatchRenderer
 {
 public:
+
+
 	FullPatchNoSharpRenderer(float btf, std::shared_ptr<ControlMesh> cm, std::shared_ptr<Camera> c)
 		: FullPatchRenderer(btf, cm, c)
 	{

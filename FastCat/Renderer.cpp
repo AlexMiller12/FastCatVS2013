@@ -17,16 +17,16 @@ void defaultErrorCallback( int error, const char* description )
 }
 
 // Default key input callback  
-void defaultKeyCallback( GLFWwindow* window, 
-						 int key, 
-						 int scancode, 
-						 int action, 
-						 int mods )
+void defaultKeyCallback( GLFWwindow* window,
+	int key,
+	int scancode,
+	int action,
+	int mods )
 {
 	if( key == GLFW_KEY_ESCAPE && action == GLFW_PRESS )
 	{
 		glfwSetWindowShouldClose( window, GL_TRUE );
-	}		
+	}
 }
 
 //--------------------------------------------------------------------------METHODS:
@@ -48,23 +48,23 @@ void Renderer::closeWindow()
 }
 
 // Creates a GLFW window and initializes GL context. Returns true upon success
-bool Renderer::createWindow() 
+bool Renderer::createWindow()
 {
 	//Set the error callback  
 	glfwSetErrorCallback( defaultErrorCallback );
 	//Initialize GLFW  
-	if( ! glfwInit() )
+	if( !glfwInit() )
 	{
 		return false;
 	}
 	//Create a window and create its OpenGL context  
-	window = glfwCreateWindow( DEFAULT_WINDOW_WIDTH, 
-							   DEFUALT_WINDOW_HEIGHT, 
-							   DEFAULT_WINDOW_NAME, 
-							   NULL, 
-							   NULL );
+	window = glfwCreateWindow( DEFAULT_WINDOW_WIDTH,
+		DEFUALT_WINDOW_HEIGHT,
+		DEFAULT_WINDOW_NAME,
+		NULL,
+		NULL );
 	//If the window couldn't be created  
-	if( ! window )
+	if( !window )
 	{
 		glfwTerminate();
 		return false;

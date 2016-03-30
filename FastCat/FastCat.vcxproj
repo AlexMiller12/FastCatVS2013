@@ -143,7 +143,9 @@
     <ClCompile Include="ControlMesh.cpp" />
     <ClCompile Include="FastCatCmd.cpp" />
     <ClCompile Include="FastCatRenderer.cpp" />
+    <ClCompile Include="FullPatchProgram.cpp" />
     <ClCompile Include="GLUtil.cpp" />
+    <ClCompile Include="IOUtil.cpp" />
     <ClCompile Include="MayaPlugin.cpp" />
     <ClCompile Include="MeshUtility.cpp" />
     <ClCompile Include="PatchRenderer.cpp" />
@@ -163,8 +165,10 @@
     <ClInclude Include="ControlMesh.h" />
     <ClInclude Include="FastCatCmd.h" />
     <ClInclude Include="FastCatRenderer.h" />
+    <ClInclude Include="FullPatchProgram.h" />
     <ClInclude Include="GLUtil.h" />
     <ClInclude Include="gumbo.h" />
+    <ClInclude Include="IOUtil.h" />
     <ClInclude Include="MeshUtility.h" />
     <ClInclude Include="MyUtil.h" />
     <ClInclude Include="PatchRenderer.h" />

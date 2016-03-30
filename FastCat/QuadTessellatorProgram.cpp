@@ -54,7 +54,7 @@ bool QuadTessellatorProgram::init()
 									   1,  0,  0,  0 );
 
 	setUniform( "B", bezierBasisFunctions );
-	setUniform( "BT", transpose( bezierBasisFunctions ) );
+	setUniform( "BT", glm::transpose( bezierBasisFunctions ) );
 
 	glEnable( GL_DEPTH_TEST );
 	glClearColor( 0.7f, 0.6f, 0.5f, 1.0f );

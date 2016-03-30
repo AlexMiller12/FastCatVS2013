@@ -31,10 +31,11 @@ void* TestCommand::creator()
 {
 	return new TestCommand;
 }
-
+#include "IOUtil.h"
 // This function is called when the Maya user types 'TestCommand' in MEL.
 MStatus TestCommand::doIt( const MArgList& args )
 {
+	string blarg = IOUtil::executionPath();
 	// Create default values for arguments we will try to parse 
 	//MStatus status = MS::kSuccess;
 	//FastCatRenderer renderer = Singleton<FastCatRenderer>::instance();
