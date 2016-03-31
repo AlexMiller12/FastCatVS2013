@@ -17,19 +17,19 @@ FullPatchRenderer::~FullPatchRenderer()
 
 	if (isGLSetup)
 	{
-		glDeleteProgram(program);
+		ShaderHelper::deleteProgram(program);
 	}
 }
 
 
 void FullPatchRenderer::renderLevel(int level)
 {
-	//if (numIndices[level] > 0)
-	//{
-	//	prerenderSetup(level);
-	//	glDrawElements(GL_PATCHES, numIndices[level], GL_UNSIGNED_INT, 0);
-	//}
-	programs[level].draw( camera->view, camera->proj );
+	if (numIndices[level] > 0)
+	{
+		prerenderSetup(level);
+		glDrawElements(GL_PATCHES, numIndices[level], GL_UNSIGNED_INT, 0);
+	}
+	//programs[level].draw( camera->view, camera->proj );
 	//camera
 }
 
@@ -116,18 +116,18 @@ void FullPatchNoSharpRenderer::generateIndexBuffer()
 		if (numIndices[i] > 0)
 		{
 			//TODO Temp:
-			FullPatchProgram newProgram;
-			newProgram.init( controlMesh->vbo );  //Create with IBO
-			newProgram.use();
+			//FullPatchProgram newProgram;
 			//newProgram.init( controlMesh->vbo );  //Create with IBO
-			newProgram.setIndices( ib.data(), (GLushort)numIndices[i] );
-			newProgram.setUniform( "u_objectColor", vec3( 1.0f, 0, 0 ) );
+			//newProgram.use();
+			////newProgram.init( controlMesh->vbo );  //Create with IBO
+			//newProgram.setIndices( ib.data(), (GLushort)numIndices[i] );
+			//newProgram.setUniform( "u_objectColor", vec3( 1.0f, 0, 0 ) );
 
-			int tessLevel = (int)fmax( 1.0f, baseTessFactor / pow( 2.0f, (float)i ) );
-			
-			newProgram.setUniform( "u_tessLevelInner", tessLevel );
-			newProgram.setUniform( "u_tessLevelOuter", tessLevel );
-			programs.push_back( newProgram );
+			//int tessLevel = (int)fmax( 1.0f, baseTessFactor / pow( 2.0f, (float)i ) );
+			//
+			//newProgram.setUniform( "u_tessLevelInner", tessLevel );
+			//newProgram.setUniform( "u_tessLevelOuter", tessLevel );
+			//programs.push_back( newProgram );
 			//-----
 			glGenBuffers(1, &ibos[i]);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibos[i]);

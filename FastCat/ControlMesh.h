@@ -20,7 +20,7 @@ public:
 	GLuint fpProgram, epProgram, vpProgram;
 
 	ControlMesh() : maxSubdivisionLevel(6), isGLSetup(false), levelsGenerated(false), debugBuffersGenerated(false) {}
-	virtual ~ControlMesh() {}
+	virtual ~ControlMesh();
 
 	MStatus initBaseMeshFromMaya(MObject shapeNode);
 

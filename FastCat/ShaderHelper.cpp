@@ -161,4 +161,29 @@ void ShaderHelper::cleanup()
 	{
 		glDeleteProgram(programs[i]);
 	}
+	programs.clear();
+	uniformLocations.clear();
+}
+
+
+void ShaderHelper::deleteProgram(GLuint program)
+{
+	int idxProgramToRemove = -1;
+
+	for (int i = 0; i < programs.size(); ++i)
+	{
+		if (programs[i] == program)
+		{
+			glDeleteProgram(program);
+			idxProgramToRemove = i;
+			break;
+		}
+	}
+
+	if (idxProgramToRemove > 0)
+	{
+		programs.erase(programs.begin() + idxProgramToRemove);
+	}
+
+	uniformLocations.erase(program);
 }

@@ -47,6 +47,7 @@ class FullPatchRenderer : public PatchRenderer
 {
 public:
 	vector<FullPatchProgram> programs;
+
 	std::vector<int> numIndices; // number of indices in each level
 	std::vector<GLuint> ibos; // GL index buffers for all levels
 	std::vector<std::vector<unsigned> > fullPatchIndexBuffers; // each level has one index buffer

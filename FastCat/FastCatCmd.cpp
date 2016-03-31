@@ -42,13 +42,6 @@ unsigned int __stdcall threadProcGL(void* data)
 
 	FastCatRenderer mainRenderer(pData->baseTessFactor, pData->mesh, pData->camera);
 
-	if (!mainRenderer.isReady)
-	{
-		mainRenderer.createWindow();
-		mainRenderer.init(); // load shaders and create a program
-		mainRenderer.isReady = true;
-	}
-
 	while (!glfwWindowShouldClose(mainRenderer.window) &&
 		WaitForSingleObject(handleCloseWindowEvent, 0) != WAIT_OBJECT_0)
 	{
@@ -59,6 +52,9 @@ unsigned int __stdcall threadProcGL(void* data)
 		glfwSwapBuffers(mainRenderer.window);
 	}
 
+#ifdef FAST_CAT_DEBUG_MODE
+	mainRenderer.controlMesh->clearDebugBuffers();
+#endif
 	mainRenderer.closeWindow();
 
 	return 0;

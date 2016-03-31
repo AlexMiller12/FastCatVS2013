@@ -5,47 +5,55 @@
 #include "CommonInclude.h"
 
 
-GLuint vbo = 0;
-GLuint vao = 0;
-GLuint shader_programme, vs, fs;
-
-float points[] = {
-	0.0f, 0.5f, 0.0f,
-	0.5f, -0.5f, 0.0f,
-	-0.5f, -0.5f, 0.0f
-};
-
-const char* vertex_shader =
-"#version 400\n"
-"in vec3 vp;"
-"void main () {"
-"  gl_Position = vec4 (vp, 1.0);"
-"}";
-
-const char* fragment_shader =
-"#version 400\n"
-"out vec4 frag_colour;"
-"void main () {"
-"  frag_colour = vec4 (0.5, 0.0, 0.5, 1.0);"
-"}";
-
 //---------------------------------------------------------CONSTRUCTORS/DESTRUCTORS:
 
+#ifdef FAST_CAT_DEBUG_MODE
+static int g_debugShowLevel = 0;
+#endif
+
 std::shared_ptr<Camera> pCam = nullptr;
+static bool g_lmbPressed = false;
+static glm::mat4 g_worldMatrix = glm::mat4(1.f);
+static double mouseX = -1.0;
+static double mouseY = -1.0;
+
 
 FastCatRenderer::FastCatRenderer(float btf, std::shared_ptr<ControlMesh> cm, std::shared_ptr<Camera> c)
-	: isReady(false), baseTessFactor(btf), controlMesh(cm), camera(c),
+	: isReady(false), meshSubdivided(false), baseTessFactor(btf), controlMesh(cm), camera(c),
 	perFrameBufferGenerated(false), perLevelBufferGenerated(false)
 {
 	state = FastCatStates::NEUTRAL;
 
-	pCam = c;
 	fullPatchNoSharpRenderer = std::make_shared<FullPatchNoSharpRenderer>(btf, cm, c);
+
+	createWindow();
+	init();
+	isReady = true;
+
+	// Initialize global variables
+	pCam = c;
+	g_lmbPressed = false;
+	g_worldMatrix = glm::mat4(1.f);
+	mouseX = -1.0;
+	mouseY = -1.0;
+
+#ifdef FAST_CAT_DEBUG_MODE
+	g_debugShowLevel = 0;
+#endif
 }
 
 FastCatRenderer::~FastCatRenderer()
 {
+	// Reset global variables
 	pCam = nullptr;
+	g_lmbPressed = false;
+	g_worldMatrix = glm::mat4(1.f);
+	mouseX = -1.0;
+	mouseY = -1.0;
+
+#ifdef FAST_CAT_DEBUG_MODE
+	g_debugShowLevel = 0;
+#endif
 }
 
 //------------------------------------------------------------------------FUNCTIONS:
@@ -56,6 +64,7 @@ void error_callback( int error, const char* description )
 	fputs( description, stderr );
 	_fgetchar();
 }
+
 
 //Define the key input callback  
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -104,7 +113,57 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	{
 		pCam->rotateDown();
 	}
+#ifdef FAST_CAT_DEBUG_MODE
+	else if (key == GLFW_KEY_EQUAL && action == GLFW_PRESS)
+	{
+		if (g_debugShowLevel < 6)
+		{
+			++g_debugShowLevel;
+		}
+	}
+	else if (key == GLFW_KEY_MINUS && action == GLFW_PRESS)
+	{
+		if (g_debugShowLevel > 0)
+		{
+			--g_debugShowLevel;
+		}
+	}
+#endif
 }
+
+
+void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	const float kSensitivity = 0.2;
+
+	if (g_lmbPressed)
+	{
+		float dx = xpos - mouseX;
+		float dy = ypos - mouseY;
+
+		g_worldMatrix = glm::rotate(kSensitivity * dy, glm::vec3(1.f, 0.f, 0.f)) *
+			glm::rotate(kSensitivity * dx, glm::vec3(0.f, 1.f, 0.f)) *
+			g_worldMatrix;
+
+		mouseX = xpos;
+		mouseY = ypos;
+	}
+}
+
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+	{
+		glfwGetCursorPos(window, &mouseX, &mouseY);
+		g_lmbPressed = true;
+	}
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+	{
+		g_lmbPressed = false;
+	}
+}
+
 
 //--------------------------------------------------------------------------METHODS:
 
@@ -147,6 +206,9 @@ void FastCatRenderer::createWindow()
 	glfwMakeContextCurrent( window );
 	//Sets the key callback  
 	glfwSetKeyCallback( window, key_callback );
+	glfwSetCursorPosCallback(window, cursor_pos_callback);
+	glfwSetMouseButtonCallback(window, mouse_button_callback);
+
 	//Initialize GLEW  
 	glewExperimental = true;
 	GLenum err = glewInit();
@@ -157,12 +219,15 @@ void FastCatRenderer::createWindow()
 		return;
 	}
 }
+
+
 void FastCatRenderer::init()
 {
 
 	//This function makes the context of the specified window current on the calling thread.   
 	glfwMakeContextCurrent( window );
 
+#ifdef FAST_CAT_DEBUG_MODE
 	std::string vsFileName(SHADER_DIR);
 	std::string psFileName(SHADER_DIR);
 	vsFileName += "/test_vs.glsl";
@@ -175,31 +240,13 @@ void FastCatRenderer::init()
 	fileNames.push_back(vsFileName.c_str());
 	fileNames.push_back(psFileName.c_str());
 	ShaderHelper::createProgramWithShaders(types, fileNames, shader_programme);
-
+#else
 	fullPatchNoSharpRenderer->createShaderProgram();
-
-	//GLuint vs = glCreateShader( GL_VERTEX_SHADER );
-	//glShaderSource( vs, 1, &vertex_shader, NULL );
-	//glCompileShader( vs );
-	//GLuint fs = glCreateShader( GL_FRAGMENT_SHADER );
-	//glShaderSource( fs, 1, &fragment_shader, NULL );
-	//glCompileShader( fs );
-
-	//shader_programme = glCreateProgram();
-	//glAttachShader( shader_programme, fs );
-	//glAttachShader( shader_programme, vs );
-	//glLinkProgram( shader_programme );
-
-	//glGenBuffers( 1, &vbo );
-	//glBindBuffer( GL_ARRAY_BUFFER, vbo );
-	//glBufferData( GL_ARRAY_BUFFER, 9 * sizeof( float ), points, GL_STATIC_DRAW );
+#endif
 	
 	glGenVertexArrays( 1, &vao );
 	glBindVertexArray( vao );
 	glBindVertexArray(0); // unbind
-	//glEnableVertexAttribArray( 0 );
-	//glBindBuffer( GL_ARRAY_BUFFER, vbo );
-	//glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, NULL );
 }
 
 // Returns true if the ESC key had been pressed or if the window had been closed  
@@ -208,8 +255,7 @@ bool FastCatRenderer::shouldWindowClose()
 	return window != NULL  &&  glfwWindowShouldClose( window );
 }
 
-//TODO: temp
-int i = 0;
+
 void FastCatRenderer::test()
 {
 	//if( i++ > 0 )
@@ -268,37 +314,36 @@ void FastCatRenderer::render()
 // Function to render hello world (to be passed to glut)
 void FastCatRenderer::testPass()
 {
-	static bool onceThrough = false;
-
-	if (!onceThrough)
+	if (!meshSubdivided)
 	{
 		controlMesh->adaptiveCCAllLevels();
+
+#ifndef FAST_CAT_DEBUG_MODE
 		fullPatchNoSharpRenderer->generateIndexBuffer();
+#endif
 
 		glEnable(GL_DEPTH_TEST); // enable depth-testing
 		glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
 		//glEnable(GL_CULL_FACE);
 		//glCullFace(GL_BACK);
 
-		onceThrough = true;
+		meshSubdivided = true;
 	}
 
-	// wipe the drawing surface clear
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-	//glUseProgram( shader_programme );
 
-	//testMesh->bindDebugBuffers(3);
+#ifdef FAST_CAT_DEBUG_MODE
+	// draw debug info
+	glUseProgram(shader_programme);
+	glm::mat4 MVP = camera->proj * camera->view * g_worldMatrix; // model matrix is identity
+	GLint loc = ShaderHelper::getUniformLocation(shader_programme, "MVP");
+	glUniformMatrix4fv(loc, 1, GL_FALSE, &MVP[0][0]);
 
-	//glm::mat4 MVP = camera->proj * camera->view; // model matrix is identity
-	//GLint loc = ShaderHelper::getUniformLocation(shader_programme, "MVP");
-	//glUniformMatrix4fv(loc, 1, GL_FALSE, &MVP[0][0]);
-	
-	//glDrawArrays(GL_TRIANGLES, 0, testMesh->getNumVerticesDebug(3));
-
-	//glBindVertexArray( vao );
-	// draw points 0-3 from the currently bound VAO with current in-use shader
-	//glDrawArrays( GL_TRIANGLES, 0, 3 );
-
+	int debugShowLevel = (g_debugShowLevel > controlMesh->maxSubdivisionLevel) ? controlMesh->maxSubdivisionLevel : g_debugShowLevel;
+	controlMesh->bindDebugBuffers(debugShowLevel);
+	glDrawArrays(GL_TRIANGLES, 0, controlMesh->getNumVerticesDebug(debugShowLevel));
+#else
+	// Draw patches
 	glBindVertexArray(vao);
 	glEnableVertexAttribArray(0);
 
@@ -317,15 +362,15 @@ void FastCatRenderer::testPass()
 
 		setPerLevelUniformBlock(tessFactor, tessFactorNextLevel, maxTessFactor, i,
 			controlMesh->levels[i]->firstVertexOffset, glm::vec4(1.f, 1.f, 1.f, 1.f));
-		
+
 		fullPatchNoSharpRenderer->renderLevel(i);
 
 		tessFactor = fmax(1.0f, tessFactor / 2.0f);
 		tessFactorNextLevel = fmax(1.0f, tessFactor / 2.0f);
 	}
 
-	glBindVertexArray(0); // unbind
-	//testMesh->clearDebugBuffers();
+	glBindVertexArray(0); // unbinds
+#endif
 }
 
 
@@ -340,10 +385,9 @@ void FastCatRenderer::setPerFrameUniformBlock(const glm::vec3 &lightDir, float z
 	}
 
 	char buff[276] = { 0 };
-	glm::mat4 worldMatrix(1.0);
-	glm::mat4 mvp = camera->proj * camera->view;
+	glm::mat4 mvp = camera->proj * camera->view * g_worldMatrix;
 
-	memcpy(buff, glm::value_ptr(worldMatrix), 16 * sizeof(float));
+	memcpy(buff, glm::value_ptr(g_worldMatrix), 16 * sizeof(float));
 	memcpy(buff + 16 * sizeof(float), glm::value_ptr(camera->view), 16 * sizeof(float));
 	memcpy(buff + 32 * sizeof(float), glm::value_ptr(camera->proj), 16 * sizeof(float));
 	memcpy(buff + 48 * sizeof(float), glm::value_ptr(mvp), 16 * sizeof(float));

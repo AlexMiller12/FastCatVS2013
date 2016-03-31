@@ -609,26 +609,6 @@ std::shared_ptr<CCLevel> CCLevel::adaptiveCatmullClark()
 }
 
 
-void CCLevel::bindBuffers(GLuint vbo)
-{
-	if (!bufferGenerated)
-	{
-		glGenVertexArrays(1, &vao);
-		glBindVertexArray(vao);
-
-		// Vertex buffer is shared by all CCLevels of the same mesh
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (const void *)(firstVertexOffset * 4 * sizeof(float)));
-		bufferGenerated = true;
-	}
-	else
-	{
-		glBindVertexArray(vao);
-	}
-}
-
-
 void CCLevel::createBaseLevel(int numVertices, MItMeshPolygon &itFace)
 {
 	isBaseLevel = true;
