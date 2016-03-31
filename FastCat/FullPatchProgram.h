@@ -31,7 +31,8 @@ private:
 public:
 	void draw( mat4 modelView, mat4 projection );
 	bool init();
-	bool init( GLuint sharedVBO );
+	//bool init( GLuint sharedVBO );
+	bool init( GLuint sharedVAO, GLuint sharedVBO );
 	void updateControlPoints( vector<GLfloat> controlPoints );
 
 private:

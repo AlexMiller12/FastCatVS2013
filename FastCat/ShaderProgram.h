@@ -73,7 +73,9 @@ public:
 	
 	bool bindToVAO(); // TODO private? 
 	bool createVBO( string attributeName, GLuint attributeindex );
-	bool enableVec3Attribute( string attributeName);
+	bool enableVec3Attribute( string attributeName );
+	bool enableVec4Attribute( string attributeName );
+	bool enableAttribute( string attributeName, int floatsPerVertex );
 
 	bool finalizeProgram();
 	GLuint getAttributeLocation( string name ); //TODO protected?
@@ -81,6 +83,7 @@ public:
 	GLuint getUniformLocation( string name );  //TODO protected?
 
 	bool init( bool createIndexBuffer );
+	bool init( GLuint vaoHandle, bool createIndexBuffer );
 
 	bool printProgramErrors();
 	bool printShaderErrors();
@@ -93,6 +96,7 @@ public:
 
 	bool setIndices( GLuint indices[], int numFaces, GLenum usage = GL_STATIC_DRAW );
 	bool setIndices( GLushort indices[], int numFaces, GLenum usage = GL_STATIC_DRAW );
+	bool setIndices( vector<GLuint> indices, GLenum usage = GL_STATIC_DRAW ); 
 	bool setIndices( vector<GLushort> indices, GLenum usage = GL_STATIC_DRAW );
 
 	bool setVec3VBO( string attributeName,  

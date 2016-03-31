@@ -9,7 +9,7 @@ void FullPatchProgram::draw( mat4 modelView, mat4 projection )
 	use();
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-	enableVec3Attribute( "in_position" );
+	enableVec4Attribute( "in_position" );
 
 	//setUniform( "u_modelView", modelView );
 	setUniform( "u_mvp", projection * modelView );
@@ -30,7 +30,7 @@ void FullPatchProgram::draw( mat4 modelView, mat4 projection )
 bool FullPatchProgram::init()
 {
 	// Initialize program without index buffer and load shaders
-	if( !ShaderProgram::init( true ) || !loadShaders() )
+	if( ! ShaderProgram::init( true ) || ! loadShaders() )
 	{
 		return false;
 	}
@@ -51,10 +51,10 @@ bool FullPatchProgram::init()
 	return true;
 }
 
-bool FullPatchProgram::init( GLuint sharedVBO )
+bool FullPatchProgram::init( GLuint sharedVAO, GLuint sharedVBO )
 {
 	// Initialize program without index buffer and load shaders
-	if( ! ShaderProgram::init( true ) || !loadShaders() )
+	if( ! ShaderProgram::init( sharedVAO, true ) || ! loadShaders() )
 	{
 		return false;
 	}
@@ -89,28 +89,28 @@ bool FullPatchProgram::loadShaders()
 	string vertSource, contSource, evalSource, geomSource, fragSource;
 	string directory = IOUtil::executionPath() + "\\Shaders\\";
 
-	if( !IOUtil::readWholeFile( directory + "no_mvp.vert", vertSource ) ||
-		!attachShader( vertSource, GL_VERTEX_SHADER ) )
+	if( ! IOUtil::readWholeFile( directory + "no_mvp.vert", vertSource ) ||
+		! attachShader( vertSource, GL_VERTEX_SHADER ) )
 	{
 		return false;
 	}
-	if( !IOUtil::readWholeFile( directory + "bspline.cont", contSource ) ||
-		!attachShader( contSource, GL_TESS_CONTROL_SHADER ) )
+	if( ! IOUtil::readWholeFile( directory + "bspline.cont", contSource ) ||
+		! attachShader( contSource, GL_TESS_CONTROL_SHADER ) )
 	{
 		return false;
 	}
-	if( !IOUtil::readWholeFile( directory + "bspline.eval", evalSource ) ||
-		!attachShader( evalSource, GL_TESS_EVALUATION_SHADER ) )
+	if( ! IOUtil::readWholeFile( directory + "bspline.eval", evalSource ) ||
+		! attachShader( evalSource, GL_TESS_EVALUATION_SHADER ) )
 	{
 		return false;
 	}
-	if( !IOUtil::readWholeFile( directory + "basic.geom", geomSource ) ||
-		!attachShader( geomSource, GL_GEOMETRY_SHADER ) )
+	if( ! IOUtil::readWholeFile( directory + "basic.geom", geomSource ) ||
+		! attachShader( geomSource, GL_GEOMETRY_SHADER ) )
 	{
 		return false;
 	}
-	if( !IOUtil::readWholeFile( directory + "basic_lighting.frag", fragSource ) ||
-		!attachShader( fragSource, GL_FRAGMENT_SHADER ) )
+	if( ! IOUtil::readWholeFile( directory + "basic_lighting.frag", fragSource ) ||
+		! attachShader( fragSource, GL_FRAGMENT_SHADER ) )
 	{
 		return false;
 	}

@@ -54,7 +54,9 @@ bool ShaderProgram::attachShader( string source, GLenum type )
 bool ShaderProgram::bindToVAO()
 {
 	glBindVertexArray( vertexArrayObjectHandle );
-	if( DEBUG )  return !GLUtil::printErrors();
+
+	if( DEBUG )  return ! GLUtil::printErrors();
+
 	return true;
 }
 
@@ -83,8 +85,10 @@ bool ShaderProgram::createVBO( string attributeName, GLuint attributeindex )
 }
 
 // Enables an attribute pointer to buffer with given name
-bool ShaderProgram::enableVec3Attribute( string attributeName )
-{ //TODO create enableVec3Attribute( int attribute index, string attributeName )
+bool ShaderProgram::enableAttribute( string attributeName, int floatsPerVertex )
+{
+	//TODO create enableVec3Attribute( int attribute index, string attributeName )
+
 	GLuint bufferHandle = getAttributeLocation( attributeName );
 
 	GLuint attributeIndex = attributeIndices[attributeName]; //TODO check if there
@@ -93,8 +97,6 @@ bool ShaderProgram::enableVec3Attribute( string attributeName )
 
 	glBindBuffer( GL_ARRAY_BUFFER, bufferHandle );
 
-	// Vec3 attributes have three floats per vertex
-	int floatsPerVertex = 3;
 	GLsizei stride = floatsPerVertex * sizeof( float );
 
 	// Tell GL how to handle data in buffer
@@ -107,6 +109,20 @@ bool ShaderProgram::enableVec3Attribute( string attributeName )
 
 	if( DEBUG )  return ! GLUtil::printErrors();
 	return true;
+}
+
+// Enables an attribute pointer to buffer with given name
+bool ShaderProgram::enableVec3Attribute( string attributeName )
+{
+	// enable Attribute with 3 floats per vertex
+	return enableAttribute( attributeName, 3 );
+}
+
+// Enables an attribute pointer to buffer with given name
+bool ShaderProgram::enableVec4Attribute( string attributeName )
+{
+	// enable Attribute with 4 floats per vertex
+	return enableAttribute( attributeName, 4 );
 }
 
 bool ShaderProgram::finalizeProgram()
@@ -192,6 +208,20 @@ bool ShaderProgram::init( bool createIndexBuffer )
 	return !GLUtil::printErrors();
 }
 
+// Initializes index buffer
+bool ShaderProgram::init( GLuint vaoHandle, bool createIndexBuffer )
+{
+	handle = glCreateProgram();
+	if( DEBUG )  GLUtil::printErrors();
+	vertexArrayObjectHandle = vaoHandle;
+	// TODO: return false on error
+	if( createIndexBuffer )
+	{
+		glGenBuffers( 1, &indexBufferHandle );
+	}
+	return ! GLUtil::printErrors();
+}
+
 // Prints any program errors.  Returns true if there were errors
 bool ShaderProgram::printProgramErrors()
 {
@@ -232,6 +262,12 @@ bool ShaderProgram::printShaderErrors()
 	}
 	// no errors
 	return false;
+}
+
+bool ShaderProgram::setIndices( vector<GLuint> indices, GLenum usage )
+{
+	numIndices = indices.size();
+	return setIndices( &indices[0], indices.size(), usage );
 }
 
 bool ShaderProgram::setIndices( vector<GLushort> indices, GLenum usage )

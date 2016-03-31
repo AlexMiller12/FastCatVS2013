@@ -29,7 +29,11 @@ void FullPatchRenderer::renderLevel(int level)
 	//	prerenderSetup(level);
 	//	glDrawElements(GL_PATCHES, numIndices[level], GL_UNSIGNED_INT, 0);
 	//}
-	programs[level].draw( camera->view, camera->proj );
+
+	if( numIndices[level] > 0 )
+	{
+		programs[level].draw( camera->view, camera->proj );
+	}
 	//camera
 }
 
@@ -77,6 +81,61 @@ void FullPatchNoSharpRenderer::prerenderSetup(int level)
 	glPatchParameteri(GL_PATCH_VERTICES, 16);
 }
 
+void FullPatchNoSharpRenderer::createFullPatchPrograms( GLuint vaoHandle )
+{
+	if( indexBufferGenerated )
+	{
+		return;
+	}
+
+	// Resize buffers
+	int numLevels = controlMesh->levels.size();
+	numIndices.resize( numLevels, 0 );
+	ibos.resize( numLevels, std::numeric_limits<GLuint>::max() );
+	fullPatchIndexBuffers.resize( numLevels );
+	for( int i = 0; i < numLevels; ++i )
+	{
+		std::shared_ptr<CCLevel> level = controlMesh->levels[i];
+		int numFullPatchesNoSharp = level->fullPatchesNoSharp.size();
+		numIndices[i] = numFullPatchesNoSharp * 16;
+		fullPatchIndexBuffers[i].resize( numIndices[i] );
+	}
+
+	for( int i = 0; i < numLevels; ++i )
+	{
+		std::shared_ptr<CCLevel> level = controlMesh->levels[i];
+		const std::vector<Face *> &fullPatchesNoSharp = level->fullPatchesNoSharp;
+		int firstVertexOffset = level->firstVertexOffset;
+		std::vector<unsigned> &ib = fullPatchIndexBuffers[i];
+		int tessLevel = (int)fmax( 1.0f, baseTessFactor / pow( 2.0f, (float)i ) );
+
+		// Fill the index buffer for this level
+		for( int j = 0; j < fullPatchesNoSharp.size(); ++j )
+		{
+			Face *f = fullPatchesNoSharp[j];
+			f->getOneRingIndices( firstVertexOffset, &ib[j * 16] );
+		}
+
+		// Create index buffer on GPU
+		if( numIndices[i] > 0 )
+		{
+			FullPatchProgram newProgram;
+			newProgram.init( vaoHandle, controlMesh->vbo );  //Create with IBO
+			newProgram.use();
+			//newProgram.init( controlMesh->vbo );  //Create with IBO
+			newProgram.setIndices( ib.data(), (GLushort)numIndices[i] );
+			newProgram.setUniform( "u_objectColor", vec3( 1.0f, 0, 0 ) );
+			newProgram.setUniform( "u_tessLevelInner", tessLevel );
+			newProgram.setUniform( "u_tessLevelOuter", tessLevel );
+			programs.push_back( newProgram );
+		}
+		else
+		{
+			programs.push_back( FullPatchProgram() ); //TODO Temp
+		}
+		ib.clear();
+	}
+}
 
 void FullPatchNoSharpRenderer::generateIndexBuffer()
 {
@@ -115,20 +174,6 @@ void FullPatchNoSharpRenderer::generateIndexBuffer()
 		// Create index buffer on GPU
 		if (numIndices[i] > 0)
 		{
-			//TODO Temp:
-			FullPatchProgram newProgram;
-			newProgram.init( controlMesh->vbo );  //Create with IBO
-			newProgram.use();
-			//newProgram.init( controlMesh->vbo );  //Create with IBO
-			newProgram.setIndices( ib.data(), (GLushort)numIndices[i] );
-			newProgram.setUniform( "u_objectColor", vec3( 1.0f, 0, 0 ) );
-
-			int tessLevel = (int)fmax( 1.0f, baseTessFactor / pow( 2.0f, (float)i ) );
-			
-			newProgram.setUniform( "u_tessLevelInner", tessLevel );
-			newProgram.setUniform( "u_tessLevelOuter", tessLevel );
-			programs.push_back( newProgram );
-			//-----
 			glGenBuffers(1, &ibos[i]);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibos[i]);
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices[i] * sizeof(unsigned), ib.data(), GL_STATIC_DRAW);

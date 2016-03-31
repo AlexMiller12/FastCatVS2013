@@ -273,7 +273,8 @@ void FastCatRenderer::testPass()
 	if (!onceThrough)
 	{
 		controlMesh->adaptiveCCAllLevels();
-		fullPatchNoSharpRenderer->generateIndexBuffer();
+		//fullPatchNoSharpRenderer->generateIndexBuffer();
+		fullPatchNoSharpRenderer->createFullPatchPrograms( vao );
 
 		glEnable(GL_DEPTH_TEST); // enable depth-testing
 		glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
@@ -298,13 +299,13 @@ void FastCatRenderer::testPass()
 	//glBindVertexArray( vao );
 	// draw points 0-3 from the currently bound VAO with current in-use shader
 	//glDrawArrays( GL_TRIANGLES, 0, 3 );
-
+/*
 	glBindVertexArray(vao);
 	glEnableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, controlMesh->vbo);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
-
+*/
 	setPerFrameUniformBlock(glm::vec3(1.f, 1.f, 1.f), camera->farClip - camera->nearClip);
 
 	int numLevels = controlMesh->levels.size();
