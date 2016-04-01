@@ -5,6 +5,8 @@
 
 #include "CCLevel.h"
 
+#define DEFAULT_MAX_SUB 1
+
 
 class ControlMesh
 {
@@ -19,7 +21,11 @@ public:
 	GLuint vbo;
 	GLuint fpProgram, epProgram, vpProgram;
 
-	ControlMesh() : maxSubdivisionLevel(6), isGLSetup(false), levelsGenerated(false), debugBuffersGenerated(false) {}
+	ControlMesh() : maxSubdivisionLevel( 6 ), 
+					isGLSetup( false ), 
+					levelsGenerated( false ), 
+					debugBuffersGenerated( false ) {}
+
 	virtual ~ControlMesh() {}
 
 	MStatus initBaseMeshFromMaya(MObject shapeNode);

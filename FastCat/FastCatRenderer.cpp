@@ -153,7 +153,7 @@ void FastCatRenderer::createWindow()
 	//If GLEW hasn't initialized  
 	if( err != GLEW_OK )
 	{
-		fprintf( stderr, "Error: %s\n", glewGetErrorString( err ) );
+		fprintf( stderr, "Error with glewInit: %s\n", glewGetErrorString( err ) );
 		return;
 	}
 }
@@ -305,24 +305,24 @@ void FastCatRenderer::testPass()
 
 	glBindBuffer(GL_ARRAY_BUFFER, controlMesh->vbo);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
-*/
 	setPerFrameUniformBlock(glm::vec3(1.f, 1.f, 1.f), camera->farClip - camera->nearClip);
+*/
 
 	int numLevels = controlMesh->levels.size();
-	float tessFactor = fmax(1.0f, baseTessFactor);
-	float tessFactorNextLevel = fmax(1.0f, tessFactor / 2.0f);
+	//float tessFactor = fmax(1.0f, baseTessFactor);
+	//float tessFactorNextLevel = fmax(1.0f, tessFactor / 2.0f);
 
 	for (int i = 0; i < numLevels; ++i)
 	{
 		float maxTessFactor = fmin(64.0f, fmax(1.0, pow(2.0f, controlMesh->maxSubdivisionLevel - i)));
 
-		setPerLevelUniformBlock(tessFactor, tessFactorNextLevel, maxTessFactor, i,
+		/*setPerLevelUniformBlock(tessFactor, tessFactorNextLevel, maxTessFactor, i,
 			controlMesh->levels[i]->firstVertexOffset, glm::vec4(1.f, 1.f, 1.f, 1.f));
-		
+		*/
 		fullPatchNoSharpRenderer->renderLevel(i);
 
-		tessFactor = fmax(1.0f, tessFactor / 2.0f);
-		tessFactorNextLevel = fmax(1.0f, tessFactor / 2.0f);
+		//tessFactor = fmax(1.0f, tessFactor / 2.0f);
+		//tessFactorNextLevel = fmax(1.0f, tessFactor / 2.0f);
 	}
 
 	glBindVertexArray(0); // unbind

@@ -29,7 +29,7 @@ void FullPatchRenderer::renderLevel(int level)
 	//	prerenderSetup(level);
 	//	glDrawElements(GL_PATCHES, numIndices[level], GL_UNSIGNED_INT, 0);
 	//}
-
+	//if( level != 2 )  return;
 	if( numIndices[level] > 0 )
 	{
 		programs[level].draw( camera->view, camera->proj );
@@ -87,7 +87,6 @@ void FullPatchNoSharpRenderer::createFullPatchPrograms( GLuint vaoHandle )
 	{
 		return;
 	}
-
 	// Resize buffers
 	int numLevels = controlMesh->levels.size();
 	numIndices.resize( numLevels, 0 );
@@ -97,7 +96,7 @@ void FullPatchNoSharpRenderer::createFullPatchPrograms( GLuint vaoHandle )
 	{
 		std::shared_ptr<CCLevel> level = controlMesh->levels[i];
 		int numFullPatchesNoSharp = level->fullPatchesNoSharp.size();
-		numIndices[i] = numFullPatchesNoSharp * 16;
+		numIndices[i] = numFullPatchesNoSharp * 16 * 4;
 		fullPatchIndexBuffers[i].resize( numIndices[i] );
 	}
 
