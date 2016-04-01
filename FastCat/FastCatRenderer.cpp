@@ -25,6 +25,7 @@ FastCatRenderer::FastCatRenderer(float btf, std::shared_ptr<ControlMesh> cm, std
 	state = FastCatStates::NEUTRAL;
 
 	fullPatchNoSharpRenderer = std::make_shared<FullPatchNoSharpRenderer>(btf, cm, c);
+	endPatchRenderer = std::make_shared<EndPatchRenderer>(btf, cm, c);
 
 	createWindow();
 	init();
@@ -242,6 +243,7 @@ void FastCatRenderer::init()
 	ShaderHelper::createProgramWithShaders(types, fileNames, shader_programme);
 #else
 	fullPatchNoSharpRenderer->createShaderProgram();
+	endPatchRenderer->createShaderProgram();
 #endif
 	
 	glGenVertexArrays( 1, &vao );
@@ -320,6 +322,7 @@ void FastCatRenderer::testPass()
 
 #ifndef FAST_CAT_DEBUG_MODE
 		fullPatchNoSharpRenderer->generateIndexBuffer();
+		endPatchRenderer->generateIndexBuffer();
 #endif
 
 		glEnable(GL_DEPTH_TEST); // enable depth-testing
@@ -364,6 +367,7 @@ void FastCatRenderer::testPass()
 			controlMesh->levels[i]->firstVertexOffset, glm::vec4(1.f, 1.f, 1.f, 1.f));
 
 		fullPatchNoSharpRenderer->renderLevel(i);
+		endPatchRenderer->renderLevel(i);
 
 		tessFactor = fmax(1.0f, tessFactor / 2.0f);
 		tessFactorNextLevel = fmax(1.0f, tessFactor / 2.0f);

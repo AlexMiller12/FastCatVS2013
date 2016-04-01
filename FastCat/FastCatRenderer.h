@@ -40,6 +40,7 @@ public:
 	std::shared_ptr<Camera> camera;
 
 	std::shared_ptr<FullPatchNoSharpRenderer> fullPatchNoSharpRenderer;
+	std::shared_ptr<EndPatchRenderer> endPatchRenderer;
 
 	bool perFrameBufferGenerated;
 	GLuint perFrameBufferName;

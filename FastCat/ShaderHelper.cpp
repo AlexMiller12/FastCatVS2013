@@ -180,10 +180,13 @@ void ShaderHelper::deleteProgram(GLuint program)
 		}
 	}
 
-	if (idxProgramToRemove > 0)
+	if (idxProgramToRemove >= 0)
 	{
 		programs.erase(programs.begin() + idxProgramToRemove);
 	}
 
-	uniformLocations.erase(program);
+	if (uniformLocations.size() > 0)
+	{
+		uniformLocations.erase(program);
+	}
 }

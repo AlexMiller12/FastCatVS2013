@@ -43,6 +43,38 @@ protected:
 };
 
 
+// Only for last subdvision level
+class EndPatchRenderer : public PatchRenderer
+{
+public:
+	int numIndices;
+	GLuint ibo;
+	GLuint ovbo; // handle to offsetValenceBuffers on GPU
+	GLuint nibo; // handle to neighbourIndexBuffers on GPU
+	std::vector<int> offsetValenceBuffer; // offsets into neighbourIdxBuffers
+	std::vector<int> neighbourIndexBuffer;
+	std::vector<unsigned> endPatchIndexBuffer;
+
+	GLuint program;
+
+	EndPatchRenderer(float btf, std::shared_ptr<ControlMesh> cm, std::shared_ptr<Camera> c)
+		: PatchRenderer(btf, cm, c) {}
+
+	// // Delete buffers and shader program.
+	virtual ~EndPatchRenderer();
+
+	// Make sure vertex buffer is bind, input layout is specified before this
+	virtual void renderLevel(int level);
+
+	virtual void generateIndexBuffer();
+
+	virtual void createShaderProgram();
+
+protected:
+	virtual void prerenderSetup(int level);
+};
+
+
 class FullPatchRenderer : public PatchRenderer
 {
 public:

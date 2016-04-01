@@ -18,6 +18,8 @@ public:
 
 	bool isUnevaluable();
 
+	void getOneRingIndices(int firstVertexOffset, std::vector<int> &indices);
+
 	void findBoundaryIndices(std::vector<int> &bis);
 
 	// boundary (valence < -2) -> pure boundary rule
