@@ -33,6 +33,16 @@ in TES_OUT
 out vec4 frag_color;
 
 
+// debug
+/*
+void main()
+{
+	frag_color = vec4(fs_in.normal, 1.0);
+}
+*/
+
+
+
 void main()
 {
 	vec3 nrm = normalize(fs_in.normal);

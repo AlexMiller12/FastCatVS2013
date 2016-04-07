@@ -26,7 +26,7 @@ public:
 					levelsGenerated( false ), 
 					debugBuffersGenerated( false ) {}
 
-	virtual ~ControlMesh() {}
+	virtual ~ControlMesh();
 
 	MStatus initBaseMeshFromMaya(MObject shapeNode);
 

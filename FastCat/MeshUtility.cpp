@@ -1,6 +1,22 @@
 #include "MeshUtility.h"
 #include "CommonInclude.h"
 
+
+void Vertex::getOneRingIndices(int firstVertexOffset, std::vector<int> &indices)
+{
+	Edge *cur = edge;
+
+	do
+	{
+		assert(cur->leftFace && cur->leftFace->valence == 4);
+		indices.push_back(firstVertexOffset + cur->dest->idx);
+		indices.push_back(firstVertexOffset + cur->fNext()->dest->idx);
+
+		cur = cur->vNext();
+	} while (cur != edge);
+}
+
+
 int Vertex::getOneRingMeta(std::vector<int> &neighbours, int *numCreases, float *averageSharpness, std::vector<int> &creases)
 {
 	if (valence < -2) // boundary

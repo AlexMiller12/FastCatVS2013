@@ -30,11 +30,17 @@ public:
 
 public:
 	bool isReady;
+	bool meshSubdivided;
+
+	GLuint vao;
+	GLuint shader_programme;
+
 	float baseTessFactor;
 	std::shared_ptr<ControlMesh> controlMesh;
 	std::shared_ptr<Camera> camera;
 
 	std::shared_ptr<FullPatchNoSharpRenderer> fullPatchNoSharpRenderer;
+	std::shared_ptr<EndPatchRenderer> endPatchRenderer;
 
 	bool perFrameBufferGenerated;
 	GLuint perFrameBufferName;

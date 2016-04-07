@@ -5,6 +5,18 @@
 #include <maya/MGlobal.h>
 
 
+ControlMesh::~ControlMesh()
+{
+	if (isGLSetup)
+	{
+		glDeleteBuffers(1, &vbo);
+		ShaderHelper::deleteProgram(fpProgram);
+		ShaderHelper::deleteProgram(epProgram);
+		ShaderHelper::deleteProgram(vpProgram);
+	}
+}
+
+
 void ControlMesh::adaptiveCCAllLevels()
 {
 	if (!levelsGenerated)
@@ -75,12 +87,14 @@ void ControlMesh::adaptiveCCAllLevels()
 		levels[i]->runSubdivisionTables(vbo);
 	}
 
-	// for debugging only
-	//glBindBuffer(GL_COPY_READ_BUFFER, vbo);
-	//float *mapped = reinterpret_cast<float *>(
-	//	glMapBufferRange(GL_COPY_READ_BUFFER, 0, verticesRawShared.size() * sizeof(float), GL_MAP_READ_BIT)
-	//	);
-	//std::memcpy(&verticesRawShared[0], mapped, verticesRawShared.size() * sizeof(float));
+#ifdef FAST_CAT_DEBUG_MODE
+	glBindBuffer(GL_COPY_READ_BUFFER, vbo);
+	float *mapped = reinterpret_cast<float *>(
+		glMapBufferRange(GL_COPY_READ_BUFFER, 0, verticesRawShared.size() * sizeof(float), GL_MAP_READ_BIT)
+		);
+	std::memcpy(&verticesRawShared[0], mapped, verticesRawShared.size() * sizeof(float));
+	glUnmapBuffer(GL_COPY_READ_BUFFER);
+#endif
 }
 
 
@@ -416,10 +430,13 @@ MStatus ControlMesh::bindDebugBuffers(int level)
 
 void ControlMesh::clearDebugBuffers()
 {
-	glDeleteBuffers(1, &debugVBO);
-	glDeleteVertexArrays(1, &debugVAO);
-	debugVertexBuffer.clear();
-	numVerticesDebug.clear();
-	offsetDebug.clear();
-	debugBuffersGenerated = false;
+	if (debugBuffersGenerated)
+	{
+		glDeleteBuffers(1, &debugVBO);
+		glDeleteVertexArrays(1, &debugVAO);
+		debugVertexBuffer.clear();
+		numVerticesDebug.clear();
+		offsetDebug.clear();
+		debugBuffersGenerated = false;
+	}
 }

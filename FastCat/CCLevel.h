@@ -26,7 +26,6 @@ public:
 	std::vector<Face *> partialPatchesSharp;
 
 	bool bufferGenerated;
-	GLuint vao;
 	int firstVertexOffset; // offset of the first vertex in the shared vertex bufffer
 
 	GLuint fpProgram; // Computer shader programs used to compute positions of the vertices in next level
@@ -35,8 +34,6 @@ public:
 
 	CCLevel();
 	virtual ~CCLevel();
-
-	void bindBuffers(GLuint vbo);
 
 	// Initialize *this as a base level (unsubdivided mesh)
 	// numVertices - number of vertices in the base level

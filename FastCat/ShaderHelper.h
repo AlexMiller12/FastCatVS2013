@@ -21,6 +21,8 @@ public:
 
 	static void cleanup();
 
+	static void deleteProgram(GLuint program);
+
 private:
 	static std::vector<GLuint> programs;
 	static std::unordered_map<GLuint, std::unordered_map<std::string, GLint> > uniformLocations;
