@@ -96,7 +96,7 @@ void FullPatchNoSharpRenderer::createFullPatchPrograms( GLuint vaoHandle )
 	{
 		std::shared_ptr<CCLevel> level = controlMesh->levels[i];
 		int numFullPatchesNoSharp = level->fullPatchesNoSharp.size();
-		numIndices[i] = numFullPatchesNoSharp * 16 * 4;
+		numIndices[i] = numFullPatchesNoSharp * 16;
 		fullPatchIndexBuffers[i].resize( numIndices[i] );
 	}
 

@@ -273,7 +273,7 @@ void FastCatRenderer::testPass()
 	if (!onceThrough)
 	{
 		controlMesh->adaptiveCCAllLevels();
-		//fullPatchNoSharpRenderer->generateIndexBuffer();
+//		fullPatchNoSharpRenderer->generateIndexBuffer();
 		fullPatchNoSharpRenderer->createFullPatchPrograms( vao );
 
 		glEnable(GL_DEPTH_TEST); // enable depth-testing
@@ -314,6 +314,7 @@ void FastCatRenderer::testPass()
 
 	for (int i = 0; i < numLevels; ++i)
 	{
+		//if( i != 2 ) continue;
 		float maxTessFactor = fmin(64.0f, fmax(1.0, pow(2.0f, controlMesh->maxSubdivisionLevel - i)));
 
 		/*setPerLevelUniformBlock(tessFactor, tessFactorNextLevel, maxTessFactor, i,
@@ -328,7 +329,6 @@ void FastCatRenderer::testPass()
 	glBindVertexArray(0); // unbind
 	//testMesh->clearDebugBuffers();
 }
-
 
 void FastCatRenderer::setPerFrameUniformBlock(const glm::vec3 &lightDir, float znzf)
 {
@@ -355,7 +355,6 @@ void FastCatRenderer::setPerFrameUniformBlock(const glm::vec3 &lightDir, float z
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, 276, buff);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, perFrameBufferName);
 }
-
 
 void FastCatRenderer::setPerLevelUniformBlock(float tessfactor, float tessfactorNextLevel, float maxTessfactor,
 	int level, int firstVertexOffset, const glm::vec4 &color)

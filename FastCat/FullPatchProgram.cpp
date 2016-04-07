@@ -7,7 +7,7 @@
 void FullPatchProgram::draw( mat4 modelView, mat4 projection )
 {
 	use();
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	//glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 	enableVec4Attribute( "in_position" );
 
@@ -21,7 +21,7 @@ void FullPatchProgram::draw( mat4 modelView, mat4 projection )
 
 	glDrawElements( GL_PATCHES,
 					numIndices,
-					GL_UNSIGNED_SHORT,
+					GL_UNSIGNED_INT,
 					0 );
 
 	GLUtil::printErrors();
@@ -61,7 +61,7 @@ bool FullPatchProgram::init( GLuint sharedVAO, GLuint sharedVBO )
 
 	shareExistingVBO( "in_position", ShaderProgram::gl_Vertex, sharedVBO );
 
-	if( !finalizeProgram() )
+	if( ! finalizeProgram() )
 	{
 		return false;
 	}
@@ -69,7 +69,7 @@ bool FullPatchProgram::init( GLuint sharedVAO, GLuint sharedVBO )
 
 	glEnable( GL_DEPTH_TEST );
 	glEnable( GL_CULL_FACE );
-	glCullFace( GL_FRONT );
+	glCullFace( GL_BACK );
 	glClearColor( 0.7f, 0.6f, 0.5f, 1.0f );
 
 	return true;
