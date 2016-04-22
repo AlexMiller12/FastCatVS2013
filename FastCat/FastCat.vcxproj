@@ -141,6 +141,7 @@
     <ClCompile Include="CCLevel.cpp" />
     <ClCompile Include="CommonInclude.cpp" />
     <ClCompile Include="ControlMesh.cpp" />
+    <ClCompile Include="EndPatchProgram.cpp" />
     <ClCompile Include="FastCatCmd.cpp" />
     <ClCompile Include="FastCatRenderer.cpp" />
     <ClCompile Include="FullPatchProgram.cpp" />
@@ -163,6 +164,7 @@
     <ClInclude Include="CCLevel.h" />
     <ClInclude Include="CommonInclude.h" />
     <ClInclude Include="ControlMesh.h" />
+    <ClInclude Include="EndPatchProgram.h" />
     <ClInclude Include="FastCatCmd.h" />
     <ClInclude Include="FastCatRenderer.h" />
     <ClInclude Include="FullPatchProgram.h" />

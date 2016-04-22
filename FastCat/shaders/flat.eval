@@ -1,0 +1,25 @@
+#version 400
+layout( quads ) in;
+
+//---------------------------------------------------------VARIABLES:
+
+in vec3 tc_vertexPositions[];
+
+out vec3 te_position;
+out vec4 te_patchDistance;
+
+uniform mat4 u_mvp;
+
+//--------------------------------------------------------------MAIN:
+
+void main()
+{
+	float u = gl_TessCoord.x, v = gl_TessCoord.y;
+	vec3 a = mix( tc_vertexPositions[0], tc_vertexPositions[3], u );
+	vec3 b = mix( tc_vertexPositions[12], tc_vertexPositions[15], u );
+
+	te_position = mix( a, b, v );
+	te_patchDistance = vec4( u, v, 1 - u, 1 - v );
+	te_position = ( u_mvp * vec4( te_position, 1 ) ).xyz;
+	gl_Position = u_mvp * vec4( te_position, 1.0 );
+};
