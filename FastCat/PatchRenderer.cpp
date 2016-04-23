@@ -4,6 +4,153 @@
 #include <maya/MGlobal.h>
 
 
+extern GLenum g_shadingMode;
+
+
+void PatchRenderer::changeControlMesh(float btf, std::shared_ptr<ControlMesh> cm)
+{
+	baseTessFactor = btf;
+	controlMesh = cm;
+	indexBufferGenerated = false;
+}
+
+
+void EndPatchRenderer::changeControlMesh(float btf, std::shared_ptr<ControlMesh> cm)
+{
+	PatchRenderer::changeControlMesh(btf, cm);
+
+	numIndices = 0;
+	glDeleteBuffers(1, &ibo);
+	glDeleteBuffers(1, &ovbo);
+	glDeleteBuffers(1, &nibo);
+	ibo = std::numeric_limits<GLuint>::max();
+	ovbo = std::numeric_limits<GLuint>::max();
+	nibo = std::numeric_limits<GLuint>::max();
+	offsetValenceBuffer.clear();
+	neighbourIndexBuffer.clear();
+	endPatchIndexBuffer.clear();
+}
+
+
+void PartialPatchSharpCaseX::clearBuffers()
+{
+	indexBufferOffsetSizes.clear();
+	sharpnessBufferOffsets.clear();
+	partialPatchIndexBuffers.clear();
+	sharpnessBuffers.clear();
+
+	for (int i = 0; i < ibos.size(); ++i)
+	{
+		if (ibos[i] != std::numeric_limits<GLuint>::max())
+		{
+			glDeleteBuffers(1, &ibos[i]);
+		}
+	}
+
+	for (int i = 0; i < sbos.size(); ++i)
+	{
+		if (sbos[i] != std::numeric_limits<GLuint>::max())
+		{
+			glDeleteBuffers(1, &sbos[i]);
+		}
+	}
+
+	ibos.clear();
+	sbos.clear();
+}
+
+
+void PartialPatchNoSharpCaseX::clearBuffers()
+{
+	numIndices.clear();
+
+	for (int i = 0; i < ibos.size(); ++i)
+	{
+		if (ibos[i] != std::numeric_limits<GLuint>::max())
+		{
+			glDeleteBuffers(1, &ibos[i]);
+		}
+	}
+
+	ibos.clear();
+	partialPatchIndexBuffers.clear();
+}
+
+
+void PartialPatchNoSharpRenderer::changeControlMesh(float btf, std::shared_ptr<ControlMesh> cm)
+{
+	PatchRenderer::changeControlMesh(btf, cm);
+
+	for (int i = 0; i < partialCases.size(); ++i)
+	{
+		std::shared_ptr<PartialPatchNoSharpCaseX> pc = partialCases[i];
+
+		pc->clearBuffers();
+	}
+
+	partialPatchesCase0.clear();
+	partialPatchesCase1.clear();
+	partialPatchesCase2.clear();
+	partialPatchesCase3.clear();
+	partialPatchesCase4.clear();
+}
+
+
+void PartialPatchSharpRenderer::changeControlMesh(float btf, std::shared_ptr<ControlMesh> cm)
+{
+	PatchRenderer::changeControlMesh(btf, cm);
+
+	for (int i = 0; i < partialCases.size(); ++i)
+	{
+		std::shared_ptr<PartialPatchSharpCaseX> pc = partialCases[i];
+
+		pc->clearBuffers();
+	}
+
+	partialPatchesCase0.clear();
+	partialPatchesCase1.clear();
+	partialPatchesCase2.clear();
+	partialPatchesCase3.clear();
+	partialPatchesCase4.clear();
+}
+
+
+void FullPatchRenderer::changeControlMesh(float btf, std::shared_ptr<ControlMesh> cm)
+{
+	PatchRenderer::changeControlMesh(btf, cm);
+
+	numIndices.clear();
+
+	for (int i = 0; i < ibos.size(); ++i)
+	{
+		if (ibos[i] != std::numeric_limits<GLuint>::max())
+		{
+			glDeleteBuffers(1, &ibos[i]);
+		}
+	}
+
+	ibos.clear();
+	fullPatchIndexBuffers.clear();
+}
+
+
+void FullPatchSharpRenderer::changeControlMesh(float btf, std::shared_ptr<ControlMesh> cm)
+{
+	FullPatchRenderer::changeControlMesh(btf, cm);
+
+	for (int i = 0; i < sbos.size(); ++i)
+	{
+		if (sbos[i] != std::numeric_limits<GLuint>::max())
+		{
+			glDeleteBuffers(1, &sbos[i]);
+		}
+	}
+
+	sbos.clear();
+	sharpnessBuffers.clear();
+}
+
+
 void partialPatchCreateProgramHelper(const char *prefix, const char *tcsName, const char *tesName, GLuint *p_program)
 {
 	std::string vsFileName(SHADER_DIR);
@@ -420,8 +567,7 @@ void PartialPatchNoSharpRenderer::prerenderSetup(int level, std::function<void (
 {
 	setDrawColor(glm::vec4(1.f, 1.f, 0.f, 1.f)); // Debug
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glPolygonMode(GL_FRONT_AND_BACK, g_shadingMode);
 	glPatchParameteri(GL_PATCH_VERTICES, 16);
 }
 
@@ -465,8 +611,7 @@ void PartialPatchSharpRenderer::prerenderSetup(int level, std::function<void(con
 {
 	setDrawColor(glm::vec4(1.f, 0.f, 0.f, 1.f)); // Debug
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glPolygonMode(GL_FRONT_AND_BACK, g_shadingMode);
 	glPatchParameteri(GL_PATCH_VERTICES, 16);
 }
 
@@ -948,8 +1093,7 @@ void FullPatchSharpRenderer::prerenderSetup(int level, std::function<void (const
 	glUseProgram(program);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibos[level]);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, sbos[level]);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glPolygonMode(GL_FRONT_AND_BACK, g_shadingMode);
 	glPatchParameteri(GL_PATCH_VERTICES, 16);
 }
 
@@ -995,8 +1139,7 @@ void FullPatchNoSharpRenderer::prerenderSetup(int level, std::function<void (con
 
 	glUseProgram(program);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibos[level]);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glPolygonMode(GL_FRONT_AND_BACK, g_shadingMode);
 	glPatchParameteri(GL_PATCH_VERTICES, 16);
 }
 

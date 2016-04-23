@@ -44,9 +44,19 @@ unsigned int __stdcall threadProcGL(void* data)
 
 	FastCatRenderer mainRenderer(pData->baseTessFactor, pData->mesh, pData->camera);
 
-	while (!glfwWindowShouldClose(mainRenderer.window) &&
-		WaitForSingleObject(handleCloseWindowEvent, 0) != WAIT_OBJECT_0)
+	while (!glfwWindowShouldClose(mainRenderer.window))
 	{
+		if (WaitForSingleObject(handleCloseWindowEvent, 0) == WAIT_OBJECT_0)
+		{
+			mainRenderer.changeControlMesh(threadDataGL.baseTessFactor, threadDataGL.mesh);
+
+			if (!ResetEvent(handleCloseWindowEvent))
+			{
+				MGlobal::displayError("Failed to reset event CloseWidnowEvent");
+				return MS::kFailure;
+			}
+		}
+
 		// render one frame
 		mainRenderer.test();
 
@@ -100,6 +110,11 @@ MStatus FastCatCmd::doIt(const MArgList &args)
 	mesh->initBaseMeshFromMaya(node);
 	mesh->maxSubdivisionLevel = ceil(log2(baseTessFactor));
 
+	// create a separate thread for OpenGL rendering
+	threadDataGL.baseTessFactor = baseTessFactor;
+	threadDataGL.camera = camera;
+	threadDataGL.mesh = mesh;
+
 	if (!handleCloseWindowEvent)
 	{
 		handleCloseWindowEvent = CreateEvent(NULL, TRUE, FALSE, TEXT("CloseWindowEvent"));
@@ -120,35 +135,31 @@ MStatus FastCatCmd::doIt(const MArgList &args)
 		}
 
 		// wait until it has terminated
-		DWORD dwWaitResult;
-		dwWaitResult = WaitForSingleObject(handleThreadGL, INFINITE);
+		//DWORD dwWaitResult;
+		//dwWaitResult = WaitForSingleObject(handleThreadGL, INFINITE);
 
-		if (dwWaitResult != WAIT_OBJECT_0)
-		{
-			std::stringstream ss;
-			ss << "WaitForSingleObject failed (" << GetLastError() << ")";
-			MGlobal::displayError(ss.str().c_str());
-			return MS::kFailure;
-		}
+		//if (dwWaitResult != WAIT_OBJECT_0)
+		//{
+		//	std::stringstream ss;
+		//	ss << "WaitForSingleObject failed (" << GetLastError() << ")";
+		//	MGlobal::displayError(ss.str().c_str());
+		//	return MS::kFailure;
+		//}
 
-		if (!ResetEvent(handleCloseWindowEvent))
-		{
-			MGlobal::displayError("Failed to reset event CloseWidnowEvent");
-			return MS::kFailure;
-		}
+		//if (!ResetEvent(handleCloseWindowEvent))
+		//{
+		//	MGlobal::displayError("Failed to reset event CloseWidnowEvent");
+		//	return MS::kFailure;
+		//}
 
 		// resource is not release before the handle is closed
-		CloseHandle(handleThreadGL);
-		handleThreadGL = NULL;
+		//CloseHandle(handleThreadGL);
+		//handleThreadGL = NULL;
+	}
+	else
+	{
+		handleThreadGL = (HANDLE)_beginthreadex(0, 0, threadProcGL, &threadDataGL, 0, 0);
 	}
 
-
-	// create a separate thread for OpenGL rendering
-	threadDataGL.baseTessFactor = baseTessFactor;
-	threadDataGL.camera = camera;
-	threadDataGL.mesh = mesh;
-
-	handleThreadGL = (HANDLE)_beginthreadex(0, 0, threadProcGL, &threadDataGL, 0, 0);
-	
 	return MS::kSuccess;
 }

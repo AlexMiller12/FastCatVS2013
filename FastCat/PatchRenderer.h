@@ -37,6 +37,8 @@ public:
 	// if these haven't been done
 	virtual void renderLevel(int level, std::function<void (const glm::vec4 &)> setDrawColor = nullptr) = 0;
 
+	virtual void changeControlMesh(float btf, std::shared_ptr<ControlMesh> cm);
+
 protected:
 	// Bind index buffer
 	virtual void prerenderSetup(int level, std::function<void (const glm::vec4 &)> setDrawColor = nullptr) = 0;
@@ -69,6 +71,8 @@ public:
 	virtual void generateIndexBuffer();
 
 	virtual void createShaderProgram();
+
+	virtual void changeControlMesh(float btf, std::shared_ptr<ControlMesh> cm);
 
 protected:
 	virtual void prerenderSetup(int level, std::function<void (const glm::vec4 &)> setDrawColor = nullptr);
@@ -112,6 +116,8 @@ public:
 
 	// Different cases use different hull and domain shaders
 	virtual void createShaderProgram() = 0;
+
+	virtual void clearBuffers();
 };
 
 
@@ -198,6 +204,8 @@ public:
 	// Make sure vertex buffer is bind, input layout is specified before this
 	virtual void renderLevel(int level, std::function<void(const glm::vec4 &)> setDrawColor = nullptr);
 
+	virtual void changeControlMesh(float btf, std::shared_ptr<ControlMesh> cm);
+
 protected:
 	virtual void prerenderSetup(int level, std::function<void(const glm::vec4 &)> setDrawColor = nullptr);
 };
@@ -223,6 +231,8 @@ public:
 
 	// Different cases use different hull and domain shaders
 	virtual void createShaderProgram() = 0;
+
+	virtual void clearBuffers();
 };
 
 
@@ -309,6 +319,8 @@ public:
 	// Make sure vertex buffer is bind, input layout is specified before this
 	virtual void renderLevel(int level, std::function<void(const glm::vec4 &)> setDrawColor = nullptr);
 
+	virtual void changeControlMesh(float btf, std::shared_ptr<ControlMesh> cm);
+
 protected:
 	virtual void prerenderSetup(int level, std::function<void (const glm::vec4 &)> setDrawColor = nullptr);
 };
@@ -317,7 +329,7 @@ protected:
 class FullPatchRenderer : public PatchRenderer
 {
 public:
-	vector<FullPatchProgram> programs;
+	//vector<FullPatchProgram> programs;
 
 	std::vector<int> numIndices; // number of indices in each level
 	std::vector<GLuint> ibos; // GL index buffers for all levels
@@ -332,6 +344,8 @@ public:
 
 	// Make sure vertex buffer is bind, input layout is specified before this
 	virtual void renderLevel(int level, std::function<void(const glm::vec4 &)> setDrawColor = nullptr);
+
+	virtual void changeControlMesh(float btf, std::shared_ptr<ControlMesh> cm);
 };
 
 
@@ -349,6 +363,8 @@ public:
 	virtual void generateIndexBuffer();
 
 	virtual void createShaderProgram();
+
+	virtual void changeControlMesh(float btf, std::shared_ptr<ControlMesh> cm);
 
 protected:
 	virtual void prerenderSetup(int level, std::function<void (const glm::vec4 &)> setDrawColor = nullptr);

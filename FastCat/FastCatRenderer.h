@@ -78,6 +78,8 @@ public:
 	virtual void setPerLevelUniformBlock(float tessfactor, float tessfactorNextLevel, float maxTessfactor,
 		int level, int firstVertexOffset, const glm::vec4 &color);
 
+	virtual void changeControlMesh(float btf, std::shared_ptr<ControlMesh> cm);
+
 private:
 	void testPass();
 };

@@ -16,6 +16,22 @@ static bool g_lmbPressed = false;
 static glm::mat4 g_worldMatrix = glm::mat4(1.f);
 static double mouseX = -1.0;
 static double mouseY = -1.0;
+GLenum g_shadingMode = GL_FILL;
+
+
+void FastCatRenderer::changeControlMesh(float btf, std::shared_ptr<ControlMesh> cm)
+{
+	baseTessFactor = btf;
+	controlMesh = cm;
+	meshSubdivided = false;
+	g_worldMatrix = glm::mat4(1.f);
+
+	fullPatchNoSharpRenderer->changeControlMesh(btf, cm);
+	fullPatchSharpRenderer->changeControlMesh(btf, cm);
+	partialPatchNoSharpRenderer->changeControlMesh(btf, cm);
+	partialPatchSharpRenderer->changeControlMesh(btf, cm);
+	endPatchRenderer->changeControlMesh(btf, cm);
+}
 
 
 FastCatRenderer::FastCatRenderer(float btf, std::shared_ptr<ControlMesh> cm, std::shared_ptr<Camera> c)
@@ -28,7 +44,6 @@ FastCatRenderer::FastCatRenderer(float btf, std::shared_ptr<ControlMesh> cm, std
 	fullPatchSharpRenderer = std::make_shared<FullPatchSharpRenderer>(btf, cm, c);
 	partialPatchNoSharpRenderer = std::make_shared<PartialPatchNoSharpRenderer>(btf, cm, c);
 	partialPatchSharpRenderer = std::make_shared<PartialPatchSharpRenderer>(btf, cm, c);
-
 	endPatchRenderer = std::make_shared<EndPatchRenderer>(btf, cm, c);
 
 	createWindow();
@@ -117,6 +132,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS)
 	{
 		pCam->rotateDown();
+	}
+	else if (key == GLFW_KEY_1 && action == GLFW_PRESS)
+	{
+		g_shadingMode = GL_LINE;
+	}
+	else if (key == GLFW_KEY_2 && action == GLFW_PRESS)
+	{
+		g_shadingMode = GL_FILL;
 	}
 #ifdef FAST_CAT_DEBUG_MODE
 	else if (key == GLFW_KEY_EQUAL && action == GLFW_PRESS)
