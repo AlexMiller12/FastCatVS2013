@@ -3,6 +3,8 @@
 
 #include <maya/MFnMesh.h>
 #include <maya/MGlobal.h>
+#include <maya/MUintArray.h>
+#include <maya/MDoubleArray.h>
 
 
 ControlMesh::~ControlMesh()
@@ -33,6 +35,7 @@ void ControlMesh::adaptiveCCAllLevels()
 			levels.push_back(level);
 		}
 		levels.back()->markEndPatches();
+		levels.back()->isLastLevel = true;
 
 		for (int i = 0; i <= maxSubdivisionLevel; ++i)
 		{
@@ -122,13 +125,29 @@ MStatus ControlMesh::initBaseMeshFromMaya(MObject shapeNode)
 		verticesRawShared.push_back(1.f);
 	}
 
+	// Get creases and their sharpness
+	MUintArray eids;
+	MDoubleArray sharpnesses;
+	EdgeSharpnessLUT edgeSharpnessLUT; // <vertex ID 1, vertex ID 2> -> sharpness
+
+	fnMesh.getCreaseEdges(eids, sharpnesses);
+
+	for (int i = 0; i < eids.length(); ++i)
+	{
+		int2 vids;
+		fnMesh.getEdgeVertices(eids[i], vids);
+		edgeSharpnessLUT[std::pair<int, int>(vids[0], vids[1])] = sharpnesses[i];
+		edgeSharpnessLUT[std::pair<int, int>(vids[1], vids[0])] = sharpnesses[i];
+	}
+
 	// TODO: get UVs for displacement mapping
 
 	std::shared_ptr<CCLevel> level = std::make_shared<CCLevel>();
 	levels.push_back(level);
 	MItMeshPolygon itFace(shapeNode);
 
-	level->createBaseLevel(numVertices, itFace);
+	level->createBaseLevel(numVertices, itFace,
+		                   edgeSharpnessLUT.empty()? NULL : &edgeSharpnessLUT);
 
 	return MS::kSuccess;
 }

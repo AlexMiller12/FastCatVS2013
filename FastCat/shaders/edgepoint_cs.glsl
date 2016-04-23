@@ -43,12 +43,12 @@ layout(std430, binding = 5) readonly buffer block5
 
 layout(std430, binding = 6) readonly buffer block6
 {
-	int e_sharpnessTable[];
+	float e_sharpnessTable[];
 };
 
 layout(std430, binding = 7) readonly buffer block7
 {
-	int v_sharpnessTable[];
+	float v_sharpnessTable[];
 };
 
 void main()

@@ -79,7 +79,7 @@ void main()
 	vec3 bitangent = vec3(0.0, 0.0, 0.0);
 	vec3 out_pos = vec3(0.0, 0.0, 0.0);
 	
-	if (true) // (valence != 4)
+	if (valence != 4)
 	{
 		float cos_fn = cos(M_PI / fn);
 		float tmp = 0.25 * (sqrt(4.0 + cos_fn * cos_fn) - cos_fn);

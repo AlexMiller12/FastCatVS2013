@@ -40,6 +40,9 @@ public:
 	std::shared_ptr<Camera> camera;
 
 	std::shared_ptr<FullPatchNoSharpRenderer> fullPatchNoSharpRenderer;
+	std::shared_ptr<FullPatchSharpRenderer> fullPatchSharpRenderer;
+	std::shared_ptr<PartialPatchNoSharpRenderer> partialPatchNoSharpRenderer;
+	std::shared_ptr<PartialPatchSharpRenderer> partialPatchSharpRenderer;
 	std::shared_ptr<EndPatchRenderer> endPatchRenderer;
 
 	bool perFrameBufferGenerated;

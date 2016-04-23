@@ -25,6 +25,10 @@ FastCatRenderer::FastCatRenderer(float btf, std::shared_ptr<ControlMesh> cm, std
 	state = FastCatStates::NEUTRAL;
 
 	fullPatchNoSharpRenderer = std::make_shared<FullPatchNoSharpRenderer>(btf, cm, c);
+	fullPatchSharpRenderer = std::make_shared<FullPatchSharpRenderer>(btf, cm, c);
+	partialPatchNoSharpRenderer = std::make_shared<PartialPatchNoSharpRenderer>(btf, cm, c);
+	partialPatchSharpRenderer = std::make_shared<PartialPatchSharpRenderer>(btf, cm, c);
+
 	endPatchRenderer = std::make_shared<EndPatchRenderer>(btf, cm, c);
 
 	createWindow();
@@ -243,6 +247,9 @@ void FastCatRenderer::init()
 	ShaderHelper::createProgramWithShaders(types, fileNames, shader_programme);
 #else
 	fullPatchNoSharpRenderer->createShaderProgram();
+	fullPatchSharpRenderer->createShaderProgram();
+	partialPatchNoSharpRenderer->createShaderProgram();
+	partialPatchSharpRenderer->createShaderProgram();
 	endPatchRenderer->createShaderProgram();
 #endif
 	
@@ -322,6 +329,9 @@ void FastCatRenderer::testPass()
 
 #ifndef FAST_CAT_DEBUG_MODE
 		fullPatchNoSharpRenderer->generateIndexBuffer();
+		fullPatchSharpRenderer->generateIndexBuffer();
+		partialPatchNoSharpRenderer->generateIndexBuffer();
+		partialPatchSharpRenderer->generateIndexBuffer();
 		endPatchRenderer->generateIndexBuffer();
 #endif
 
@@ -359,6 +369,12 @@ void FastCatRenderer::testPass()
 	float tessFactor = fmax(1.0f, baseTessFactor);
 	float tessFactorNextLevel = fmax(1.0f, tessFactor / 2.0f);
 
+	// used to change patch colors
+	auto setDrawColor = [this](const glm::vec4 &newColor)
+	{
+		glNamedBufferSubData(perLevelBufferName, 32, 16, glm::value_ptr(newColor));
+	};
+
 	for (int i = 0; i < numLevels; ++i)
 	{
 		float maxTessFactor = fmin(64.0f, fmax(1.0, pow(2.0f, controlMesh->maxSubdivisionLevel - i)));
@@ -366,8 +382,11 @@ void FastCatRenderer::testPass()
 		setPerLevelUniformBlock(tessFactor, tessFactorNextLevel, maxTessFactor, i,
 			controlMesh->levels[i]->firstVertexOffset, glm::vec4(1.f, 1.f, 1.f, 1.f));
 
-		fullPatchNoSharpRenderer->renderLevel(i);
-		endPatchRenderer->renderLevel(i);
+		fullPatchNoSharpRenderer->renderLevel(i, setDrawColor);
+		fullPatchSharpRenderer->renderLevel(i, setDrawColor);
+		partialPatchNoSharpRenderer->renderLevel(i, setDrawColor);
+		partialPatchSharpRenderer->renderLevel(i, setDrawColor);
+		endPatchRenderer->renderLevel(i, setDrawColor);
 
 		tessFactor = fmax(1.0f, tessFactor / 2.0f);
 		tessFactorNextLevel = fmax(1.0f, tessFactor / 2.0f);

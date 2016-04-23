@@ -47,7 +47,7 @@ void CCLevel::classifyPatches()
 
 		bool isTagged = f->isMarkedForSubdivision;
 		bool wasTagged = f->wasMarkedForSubdivision || isBaseLevel;
-		bool hasTriangleHead = f->hasTriangleHead();
+		bool hasTriangleHead = f->hasTriangleHead() && !isLastLevel;
 		int numCreases = f->numCreases();
 
 		if (isTagged)
@@ -609,7 +609,8 @@ std::shared_ptr<CCLevel> CCLevel::adaptiveCatmullClark()
 }
 
 
-void CCLevel::createBaseLevel(int numVertices, MItMeshPolygon &itFace)
+void CCLevel::createBaseLevel(int numVertices, MItMeshPolygon &itFace,
+	                          const EdgeSharpnessLUT *edgeSharpnessLUT)
 {
 	isBaseLevel = true;
 	lut.clear();
@@ -647,7 +648,7 @@ void CCLevel::createBaseLevel(int numVertices, MItMeshPolygon &itFace)
 		}
 		
 		// Create face and corresponding (half) edges
-		addFace(indices);
+		addFace(indices, edgeSharpnessLUT);
 
 		itFace.next();
 	}
@@ -674,7 +675,8 @@ void CCLevel::createBaseLevel(int numVertices, MItMeshPolygon &itFace)
 }
 
 
-Face *CCLevel::addFace(const std::vector<unsigned> &faceVertexIndices)
+Face *CCLevel::addFace(const std::vector<unsigned> &faceVertexIndices,
+	                   const EdgeSharpnessLUT *edgeSharpnessLUT)
 {
 	int startIdx = elist.size();
 	int numEdges = faceVertexIndices.size();
@@ -689,9 +691,11 @@ Face *CCLevel::addFace(const std::vector<unsigned> &faceVertexIndices)
 	for (int i = 0; i < numEdges; ++i)
 	{
 		int ei = startIdx + i;
+		int orgIdx = faceVertexIndices[i];
+		int destIdx = faceVertexIndices[(i + 1) % numEdges];
 		Edge *e = &elist[ei];
-		Vertex *org = &vlist[faceVertexIndices[i]];
-		Vertex *dest = &vlist[faceVertexIndices[(i + 1) % numEdges]];
+		Vertex *org = &vlist[orgIdx];
+		Vertex *dest = &vlist[destIdx];
 		Edge *next = &elist[startIdx + (i + 1) % numEdges];
 		Edge *prev = &elist[startIdx + (i + numEdges - 1) % numEdges];
 
@@ -706,6 +710,15 @@ Face *CCLevel::addFace(const std::vector<unsigned> &faceVertexIndices)
 		e->leftFace = f;
 		e->_next = next;
 		e->_prev = prev;
+
+		if (edgeSharpnessLUT)
+		{
+			auto itSharpEdge = edgeSharpnessLUT->find(std::pair<int, int>(orgIdx, destIdx));
+			if (itSharpEdge != edgeSharpnessLUT->end())
+			{
+				e->sharpness = itSharpEdge->second;
+			}
+		}
 
 		// check if the dual edge exist
 		auto itResult1 = lut.find(dest->idx);
@@ -731,7 +744,7 @@ Face *CCLevel::addFace(const std::vector<unsigned> &faceVertexIndices)
 
 
 CCLevel::CCLevel()
-	: isBaseLevel(false), patchesClassified(false), bufferGenerated(false), firstVertexOffset(-1)
+	: isBaseLevel(false), isLastLevel(false), patchesClassified(false), bufferGenerated(false), firstVertexOffset(-1)
 {
 	const int numTableBuffers = 7;
 

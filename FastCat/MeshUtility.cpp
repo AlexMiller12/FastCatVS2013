@@ -1,6 +1,8 @@
 #include "MeshUtility.h"
 #include "CommonInclude.h"
 
+#include <maya/MGlobal.h>
+
 
 void Vertex::getOneRingIndices(int firstVertexOffset, std::vector<int> &indices)
 {
@@ -197,6 +199,52 @@ bool Face::hasTriangleHead()
 	} while (cur != right);
 
 	return false;
+}
+
+
+void Face::getPartialPatchInfo(int *p_numTriHeands, bool *p_connected) const
+{
+	Edge *cur = right;
+	int &numTriHeads = *p_numTriHeands;
+	bool &connected = *p_connected;
+	int triHeadIdx0, triHeadIdx1, idx;
+
+	// assert doesn't work in Maya plugin
+	// COMMENT THIS OUT IN RELEASE BUILD
+	if (valence != 4)
+	{
+		MGlobal::displayError("Transition patch is not quad");
+		return;
+	}
+
+	numTriHeads = 0;
+	connected = false;
+	idx = 0;
+
+	do
+	{
+		if (cur->isTriangleHead)
+		{
+			if (numTriHeads == 0)
+			{
+				triHeadIdx0 = idx;
+			}
+			if (numTriHeads == 1)
+			{
+				triHeadIdx1 = idx;
+			}
+			++numTriHeads;
+		}
+
+		++idx;
+		cur = cur->fNext();
+	} while (cur != right);
+
+	if (numTriHeads == 2 &&
+		(triHeadIdx1 - triHeadIdx0 == 1 || triHeadIdx1 - triHeadIdx0 == valence - 1))
+	{
+		connected = true;
+	}
 }
 
 

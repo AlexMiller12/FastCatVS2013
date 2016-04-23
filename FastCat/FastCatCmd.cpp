@@ -8,11 +8,13 @@
 #include <maya/MPointArray.h>
 #include <maya/MFloatVectorArray.h>
 #include <maya/MItMeshPolygon.h>
-#include <memory>
+#include <maya/MThreadAsync.h>
+#include <maya/MSpinLock.h>
 
 #include <Windows.h>
 #include <process.h>
 #include <sstream>
+#include <memory>
 
 
 MSyntax FastCatCmd::newSyntax()
@@ -140,12 +142,13 @@ MStatus FastCatCmd::doIt(const MArgList &args)
 		handleThreadGL = NULL;
 	}
 
+
 	// create a separate thread for OpenGL rendering
 	threadDataGL.baseTessFactor = baseTessFactor;
 	threadDataGL.camera = camera;
 	threadDataGL.mesh = mesh;
 
 	handleThreadGL = (HANDLE)_beginthreadex(0, 0, threadProcGL, &threadDataGL, 0, 0);
-
+	
 	return MS::kSuccess;
 }

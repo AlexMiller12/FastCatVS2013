@@ -115,6 +115,8 @@ public:
 	// Don't use these two directly
 	Edge *_next = NULL;
 	Edge *_prev = NULL;
+
+	inline bool isSharp() { return sharpness > FLT_EPSILON; }
 };
 
 
@@ -130,6 +132,7 @@ public:
 
 	int numCreases();
 	bool hasTriangleHead();
+	void getPartialPatchInfo(int *p_numTriHeands, bool *p_connected) const;
 
 	inline void rotateCCW() { right = right->fPrev(); }
 	inline void rotateCW() { right = right->fNext(); }

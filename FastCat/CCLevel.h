@@ -17,7 +17,7 @@ public:
 	std::vector<Edge> elist;
 	std::vector<Face> flist;
 
-	bool isBaseLevel;
+	bool isBaseLevel, isLastLevel;
 	bool patchesClassified;
 	std::vector<Face *> endPatches;
 	std::vector<Face *> fullPatchesNoSharp;
@@ -38,7 +38,8 @@ public:
 	// Initialize *this as a base level (unsubdivided mesh)
 	// numVertices - number of vertices in the base level
 	// itFace - iterator to the first face of the mesh
-	void createBaseLevel(int numVertices, MItMeshPolygon &itFace);
+	void createBaseLevel(int numVertices, MItMeshPolygon &itFace,
+		                 const EdgeSharpnessLUT *edgeSharpnessLUT = NULL);
 
 	// Construct the next CCLevel and tables for computing vertex positions in the next level
 	// New vertex positions are not computed after call to this method
@@ -76,7 +77,8 @@ private:
 	std::vector<float> v_sharpnessTable;
 
 	// faceVertexIndices store indices into vlist (not indices into shared vertex buffer)
-	Face *addFace(const std::vector<unsigned> &faceVertexIndices);
+	Face *addFace(const std::vector<unsigned> &faceVertexIndices,
+		          const EdgeSharpnessLUT *edgeSharpnessLUT = NULL);
 
 	// Mark face to be subdivided
 	// Put face and its one-ring neighbor into subd_faces
