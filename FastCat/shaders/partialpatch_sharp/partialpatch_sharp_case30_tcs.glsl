@@ -87,7 +87,7 @@ void main()
 		cp0 = gl_in[i * 4 + j].gl_Position.xyz;
 	}
 	
-	float s = g_SharpnessBuffer[gl_PrimitiveID];
+	float s = g_SharpnessBuffer[sbOffset + gl_PrimitiveID];
 	float s_floor = floor(s);
 	float s_ceil = ceil(s);
 	

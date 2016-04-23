@@ -306,8 +306,14 @@ void PartialPatchSharpCaseX::generateIndexBuffer(const std::vector<std::vector<F
 		indexBufferOffsetSizesLevel[0] = 0;
 		indexBufferOffsetSizesLevel[1] = numIndicesRot[0];
 		sharpnessBufferOffsetsLevel[0] = 0;
-		memcpy(&ppib[0], &ibsRot[0][0], numIndicesRot[0] * sizeof(unsigned));
-		memcpy(&ppsb[0], &sbsRot[0][0], numPatchesRot[0] * sizeof(float));
+		if (numIndicesRot[0] > 0)
+		{
+			memcpy(&ppib[0], &ibsRot[0][0], numIndicesRot[0] * sizeof(unsigned));
+		}
+		if (numPatchesRot[0] > 0)
+		{
+			memcpy(&ppsb[0], &sbsRot[0][0], numPatchesRot[0] * sizeof(float));
+		}
 
 		for (int j = 1; j < 4; ++j)
 		{
@@ -323,8 +329,14 @@ void PartialPatchSharpCaseX::generateIndexBuffer(const std::vector<std::vector<F
 			indexBufferOffsetSizesLevel[2 * j] = curIbOffset;
 			indexBufferOffsetSizesLevel[2 * j + 1] = curNumIndices;
 			sharpnessBufferOffsetsLevel[j] = curSbOffset;
-			memcpy(&ppib[curIbOffset], &ibsRot[j][0], curNumIndices * sizeof(unsigned));
-			memcpy(&ppsb[curSbOffset], &sbsRot[j][0], curNumPatches * sizeof(float));
+			if (curNumIndices > 0)
+			{
+				memcpy(&ppib[curIbOffset], &ibsRot[j][0], curNumIndices * sizeof(unsigned));
+			}
+			if (curNumPatches > 0)
+			{
+				memcpy(&ppsb[curSbOffset], &sbsRot[j][0], curNumPatches * sizeof(float));
+			}
 		}
 
 		// Generate GPU buffers
@@ -371,7 +383,7 @@ PartialPatchSharpCaseX::~PartialPatchSharpCaseX()
 // Debug
 static const glm::vec4 ppDebugColorTable[5] =
 {
-	glm::vec4(1.f, 1.f, 0.f, 1.f),
+	glm::vec4(1.f, 1.f, .5f, 1.f),
 	glm::vec4(0.f, 1.f, 0.f, 1.f),
 	glm::vec4(1.f, 0.f, 0.f, 1.f),
 	glm::vec4(0.f, 0.f, 1.f, 1.f),
@@ -471,6 +483,8 @@ void PartialPatchSharpRenderer::renderLevel(int level, std::function<void(const 
 		{
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pc->ibos[level]);
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, pc->sbos[level]);
+
+			//setDrawColor(ppDebugColorTable[i]); // Debug
 
 			std::vector<GLuint> &programs = pc->programs;
 			for (int j = 0; j < programs.size(); ++j)
