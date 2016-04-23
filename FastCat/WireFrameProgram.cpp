@@ -60,12 +60,12 @@ bool WireFrameProgram::init()
 
 void WireFrameProgram::updateVertexPositions( vector<GLfloat> vertexPositions )
 {
-	setVec3VBO( "in_position", vertexPositions );
+	setVBO( "in_position", vertexPositions );
 }
 
 void WireFrameProgram::updateVertexColors( vector<GLfloat> vertexColors )
 {
-	setVec3VBO( "in_color", vertexColors );
+	setVBO( "in_color", vertexColors );
 }
 
 //--------------------------------------------------------------------------HELPERS:

@@ -1,0 +1,93 @@
+#version 450
+layout( quads ) in;
+//layout(triangles, equal_spacing, cw) in;
+
+
+// This function comes right out of the author's implementation
+// It's a B-spline basis evaluation via deBoor pyramid
+
+//---------------------------------------------------------CONSTANTS:
+
+float ONE_THIRD = 1.0 / 3.0;
+float TWO_THIRDS = 2.0 / 3.0;
+
+//---------------------------------------------------------VARIABLES:
+
+in vec3 tc_vertexPositions[];
+
+out vec3 te_position;
+out vec3 te_normal;
+
+uniform mat4 u_mvp;
+// uniform mat3 u_modelRotation;
+
+//-----------------------------------------------------------HELPERS:
+
+void evaluateCubicBSpline( float u, 
+						   inout vec4 basis, 
+						   inout vec4 basisDerivitive )
+{
+ 	float t = u;
+    float s = 1.0 - u;
+
+	float c0 = s * ( 0.5 * s );
+	float c1 = t * ( s + 0.5 * t )  +  s * ( 0.5 * s + t );
+	float c2 = t * ( 0.5 * t );
+
+    basis[0] =	ONE_THIRD * s * c0;
+
+    basis[1] = ( TWO_THIRDS * s + t ) * c0 + 
+    		   ( TWO_THIRDS * s + ONE_THIRD * t ) * c1;
+
+    basis[2] = ( ONE_THIRD * s + TWO_THIRDS * t ) * c1 + 
+     		   ( s + TWO_THIRDS * t ) * c2;
+
+    basis[3] = ONE_THIRD * t  * c2;
+
+    basisDerivitive[0] = -c0;
+    basisDerivitive[1] = c0 - c1;
+    basisDerivitive[2] = c1 - c2;
+    basisDerivitive[3] = c2;
+}
+
+//--------------------------------------------------------------MAIN:
+
+void main()
+{
+	vec4 basis = vec4(0);
+	vec4 basisDerivitive = vec4(0);
+	vec3 cpXBasis[4] = vec3[]( vec3(0), vec3(0), vec3(0), vec3(0) );
+	vec3 cpXBasisDerivitive[4] = vec3[]( vec3(0), vec3(0), vec3(0), vec3(0) );
+
+	// get control point basis for the x component of texture coordinate
+	evaluateCubicBSpline( gl_TessCoord.x, basis, basisDerivitive );
+
+	for( int i = 0; i < 4; i++ )
+	{
+		for( int j = 0; j < 4; j++ )
+		{
+			vec3 controlPoint = tc_vertexPositions[ 4 * i + j];
+			cpXBasis[i] += controlPoint * basis[j];
+			cpXBasisDerivitive[i] += controlPoint * basisDerivitive[j];
+		}
+	}
+	// control point basis for the y component of texture coordinate
+	evaluateCubicBSpline( gl_TessCoord.y, basis, basisDerivitive );
+
+	vec3 worldPos = vec3( 0 );
+	vec3 tangent = vec3( 0 );
+	vec3 biTangent = vec3( 0 );
+
+	for( int i = 0; i < 4; i++ )
+	{
+		worldPos += basis[i] * cpXBasis[i];
+		tangent += basis[i] * cpXBasisDerivitive[i];
+		biTangent += basisDerivitive[i] * cpXBasis[i];
+	}
+	vec3 normal = normalize( cross( biTangent, tangent ) );
+
+	// te_normal = normal; //TODO multiply by model mat
+	te_normal = gl_TessCoord;
+	te_position = worldPos;
+	gl_Position = u_mvp * vec4( worldPos, 1.0 );
+}

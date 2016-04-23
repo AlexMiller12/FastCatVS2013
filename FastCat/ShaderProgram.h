@@ -37,10 +37,9 @@ public:
 	const static GLint gl_MultiTexCoord7	= 15;
 	
 private:
-	const bool DEBUG = true;
+	const static bool DEBUG = true;
 
 //---------------------------------------------------------------------------FIELDS:
-public:
 
 protected:
 	// Program handle
@@ -49,13 +48,14 @@ protected:
 	GLuint vertexArrayObjectHandle;
 	GLuint indexBufferHandle;
 	int numIndices;
-
+	
 private:
-	unordered_map<string, GLint> uniformLocations;
-	unordered_map<string, GLint> attributeLocations;
+	static unordered_map<string, GLint> sboHandles;
 	unordered_map<string, GLint> attributeIndices;
+	unordered_map<string, GLint> attributeLocations;
+	unordered_map<string, GLint> uniformLocations;
 	vector<GLuint> shaders;
-
+	unordered_map<string, GLint> sboBlockIndices;
 
 	//unordered_map<string, GLint> samplerTextureNumbers;
 
@@ -72,18 +72,46 @@ public:
 	bool attachShader( string source, GLenum type );
 	
 	bool bindToVAO(); // TODO private? 
+	static bool createSBO( string name );
 	bool createVBO( string attributeName, GLuint attributeindex );
-	bool enableVec3Attribute( string attributeName);
+	bool enableInt1Attribute( string attributeName );
+	bool enableVec1Attribute( string attributeName );
+	bool enableVec3Attribute( string attributeName );
+	bool enableVec4Attribute( string attributeName );
+	bool enableFloatAttribute( string attributeName, int floatsPerVertex );
+	bool enableIntAttribute( string attributeName, int intsPerVertex );
 
 	bool finalizeProgram();
-	GLuint getAttributeLocation( string name ); //TODO protected?
+	GLuint getAttributeLocation( string name ); //TODO protected? 
+	GLuint getBlockIndex( string name );
+	static GLuint getSBOHandle( string name );
 	GLuint getHandle();
 	GLuint getUniformLocation( string name );  //TODO protected?
 
 	bool init( bool createIndexBuffer );
+	bool init( GLuint vaoHandle, bool createIndexBuffer );
 
 	bool printProgramErrors();
 	bool printShaderErrors();
+
+
+
+	bool setIndices( GLuint indices[], 
+					 int numFaces, 
+					 GLenum usage = GL_STATIC_DRAW );
+	bool setIndices( GLushort indices[],
+					 int numFaces, 
+					 GLenum usage = GL_STATIC_DRAW );
+	bool setIndices( vector<GLuint> indices, GLenum usage = GL_STATIC_DRAW ); 
+	bool setIndices( vector<GLushort> indices, GLenum usage = GL_STATIC_DRAW );
+	
+	static bool setSBO( string name,
+						GLsizei size,
+						const void* data,
+						GLenum usage = GL_DYNAMIC_COPY );
+
+	bool setSBOBindingPoint( GLuint bindingPointIndex, string sboName );
+	bool setSBOBindingPoint( GLuint bindingPointIndex, string sboName, GLuint sboHandle );
 
 	bool setUniform( string uniformName, mat3 value );
 	bool setUniform( string uniformName, mat4 value );
@@ -91,26 +119,36 @@ public:
 	bool setUniform( string uniformName, vec4 value );
 	bool setUniform( string uniformName, float value );
 
-	bool setIndices( GLuint indices[], int numFaces, GLenum usage = GL_STATIC_DRAW );
-	bool setIndices( GLushort indices[], int numFaces, GLenum usage = GL_STATIC_DRAW );
-	bool setIndices( vector<GLushort> indices, GLenum usage = GL_STATIC_DRAW );
+	bool setVBO( string attributeName,  
+				 vector<GLfloat> data, 
+				 GLenum usage = GL_STATIC_DRAW );
+	
+	bool setVBO( string attributeName,  
+				 vector<GLint> data, 
+				 GLenum usage = GL_STATIC_DRAW );
 
-	bool setVec3VBO( string attributeName,  
-					 vector<GLfloat> data, 
-					 GLenum usage = GL_STATIC_DRAW );
+	bool setVBO( string attributeName,  
+				 GLfloat data[], 
+				 int dataLength, 
+				 GLenum usage = GL_STATIC_DRAW );
 
-	bool setVec3VBO( string attributeName,  
-					 GLfloat data[], 
-					 int dataLength, 
-					 GLenum usage = GL_STATIC_DRAW );
-
+	bool setVBO( string attributeName,
+				 GLint data[],
+				 int dataLength,
+				 GLenum usage = GL_STATIC_DRAW );
+	
 	bool shareExistingVBO( string attributeName, 
 						   GLuint attributeindex,
 						   GLuint vboHandle );
 
 	void use();
 
-private:
+private:	
+	bool setVBO( string attributeName,  
+				 GLvoid* data, 
+				 int sizeOfData,
+				 GLenum usage );
+
 };
 
 #endif

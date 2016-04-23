@@ -1,0 +1,28 @@
+#version 450
+layout( vertices = 16 ) out;
+
+//-------------------------------------------------------------------VARIABLES:
+
+in vec3 v_position[];
+
+out vec3 tc_vertexPositions[];
+
+uniform float u_tessLevelInner;
+uniform float u_tessLevelOuter;
+
+//------------------------------------------------------------------------MAIN:
+
+void main()
+{
+	tc_vertexPositions[gl_InvocationID] = v_position[gl_InvocationID];
+
+	if( gl_InvocationID == 0 )
+	{
+		gl_TessLevelInner[0] = u_tessLevelInner;
+		gl_TessLevelInner[1] = u_tessLevelInner;
+		gl_TessLevelOuter[0] = u_tessLevelOuter;
+		gl_TessLevelOuter[1] = u_tessLevelOuter;
+		gl_TessLevelOuter[2] = u_tessLevelOuter;
+		gl_TessLevelOuter[3] = u_tessLevelOuter;
+	}
+}

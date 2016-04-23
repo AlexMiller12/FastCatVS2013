@@ -1,26 +1,24 @@
-#ifndef FULL_PATCH_PROG
-#define FULL_PATCH_PROG
+#ifndef END_PATCH_PROGRAM
+#define END_PATCH_PROGRAM
 
-#include "BasicShaders.h"
+#include "ShaderProgram.h"
 #include "ShaderProgram.h"
 #include "IOUtil.h"
 
 using namespace std;
 
-class FullPatchProgram : public ShaderProgram
+class EndPatchProgram : public ShaderProgram
 {
 	
-//----------------------------------------------------------------------------ENUMS:
-	
+//--------------------------------------------------------------------------STRUCTS:
+
+
 //------------------------------------------------------------------------CONSTANTS:
 	
 //---------------------------------------------------------------------------FIELDS:
-
+	
 private:
-	float innerTessellationLevel;
-	float outerTessellationLevel;
 	int numVertices;
-	int controlPointsPerPatch;
 
 //---------------------------------------------------------CONSTRUCTORS/DESTRUCTORS:
 		
@@ -29,14 +27,13 @@ private:
 //--------------------------------------------------------------------------METHODS:
 
 public:
-	void draw( mat4 modelView, mat4 projection );
+	void draw( mat4 mvp );
 	bool init();
-	//bool init( GLuint sharedVBO );
-	bool init( GLuint sharedVAO, GLuint sharedVBO );
-	void updateControlPoints( vector<GLfloat> controlPoints );
+	void updateControlPoints( vector<GLfloat> newControlPoints );
 
 private:
 	bool loadShaders();
+
 };
 
 #endif
