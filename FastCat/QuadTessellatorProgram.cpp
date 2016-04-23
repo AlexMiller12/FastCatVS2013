@@ -65,7 +65,7 @@ bool QuadTessellatorProgram::init()
 void QuadTessellatorProgram::updateControlPoints( vector<GLfloat> newControlPoints )
 {
 	numVertices = newControlPoints.size();
-	setVBO( "Position", newControlPoints );
+	setVec3VBO( "Position", newControlPoints );
 }
 
 //--------------------------------------------------------------------------HELPERS:

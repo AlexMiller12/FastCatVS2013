@@ -364,7 +364,6 @@ public:
 	virtual ~FullPatchNoSharpRenderer() {}
 
 	virtual void generateIndexBuffer();
-	virtual void createFullPatchPrograms( GLuint vaoHandle );
 
 	virtual void createShaderProgram();
 
