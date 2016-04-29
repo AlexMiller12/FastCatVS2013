@@ -26,6 +26,50 @@ MSyntax FastCatCmd::newSyntax()
 	return syntax;
 }
 
+//-----TEMP
+MPlug getDisplacementMapPlug( const MDagPath& dagPath )
+{
+	MStatus status = MStatus::kFailure;
+
+	if( dagPath.hasFn( MFn::kMesh ) )
+	{
+		// Find the Shading Engines Connected to the SourceNode 
+		MFnMesh fnMesh( dagPath.node() );
+		// A ShadingGroup will have a MFnSet 
+		MObjectArray sets, comps;
+		fnMesh.getConnectedSetsAndMembers( dagPath.instanceNumber(),
+			sets,
+			comps,
+			true );
+		// Each set is a Shading Group. Loop through them
+		for( unsigned int i = 0; i < sets.length(); ++i )
+		{
+			MFnDependencyNode fnDepSGNode( sets[i] );
+
+			MPlug displacementPlug = fnDepSGNode.findPlug( "displacementShader",
+				true,
+				&status );
+			if( status == MStatus::kSuccess )
+			{
+				return displacementPlug;
+			}
+		}
+	}
+
+	return MPlug();
+}
+
+MTexture* getDisplacementMapTexture( const MDagPath& dagPath, int width, int height )
+{
+	MPlug displacementPlug = getDisplacementMapPlug( dagPath );
+
+	MRenderer* theRenderer = MRenderer::theRenderer( false );
+	MTextureManager* textureManager = theRenderer->getTextureManager();
+
+	return textureManager->acquireTexture( "blinn1", displacementPlug, width, height );
+}
+//-----
+
 
 struct ThreadDataGL
 {
@@ -100,6 +144,31 @@ MStatus FastCatCmd::doIt(const MArgList &args)
 		MGlobal::displayError("Selection is not a polymesh");
 		return MS::kFailure;
 	}
+
+	//----------------TEMP 
+
+	MTexture* displacementMapTexture = getDisplacementMapTexture( dagPath, 900, 900 );
+	int rowPitch, slicePitch;
+	char* rawData = (char*)displacementMapTexture->rawData( rowPitch, slicePitch );
+	int bytesPerPixel = displacementMapTexture->bytesPerPixel();
+	int width = rowPitch / bytesPerPixel;
+	int height = ( slicePitch / bytesPerPixel ) / width;
+	MTextureDescription textureDescription;
+
+	displacementMapTexture->textureDescription( textureDescription );
+
+	for( int i = 0; i < 100; i += 4 )
+	{
+		char r = rawData[i];
+		char g = rawData[i + 1];
+		char b = rawData[i + 2];
+		char a = rawData[i + 3];
+		int blarg = 0;
+	}
+
+	//----------------
+
+
 
 	node = dagPath.node();
 

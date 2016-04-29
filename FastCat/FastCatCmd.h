@@ -7,6 +7,14 @@
 #include <maya/MSyntax.h>
 #include <maya/MArgDatabase.h>
 
+// TEMP:
+#include <maya/MPlugArray.h>
+#include <maya/MPlug.h> 
+#include <maya/MTextureManager.h> 
+#include <maya/MViewport2Renderer.h>
+
+using namespace MHWRender;
+
 
 #define FAST_CAT_CMD_NAME "fastcat"
 
