@@ -10,6 +10,7 @@
 #include <maya/MItMeshPolygon.h>
 #include <maya/MThreadAsync.h>
 #include <maya/MSpinLock.h>
+#include <maya/MArgDatabase.h>
 
 #include <Windows.h>
 #include <process.h>
@@ -17,11 +18,15 @@
 #include <memory>
 
 
+const char *subdLevelFlag_s = "-lvl", *subdLevelFlag_l = "-level";
+
+
 MSyntax FastCatCmd::newSyntax()
 {
 	MSyntax syntax;
 
 	// Define command arguments here by syntax.addFlag(shortName, longName, MSyntax::someType)
+	syntax.addFlag(subdLevelFlag_s, subdLevelFlag_l, MSyntax::kLong);
 
 	return syntax;
 }
@@ -120,6 +125,26 @@ unsigned int __stdcall threadProcGL(void* data)
 // Fail if the selected is not mesh or there are more other than one selection
 MStatus FastCatCmd::doIt(const MArgList &args)
 {
+	// Get options
+	MArgDatabase argDB(syntax(), args);
+	int subdLevel = 1;
+
+	if (argDB.isFlagSet(subdLevelFlag_s))
+	{
+		argDB.getFlagArgument(subdLevelFlag_s, 0, subdLevel);
+
+		if (subdLevel < 0)
+		{
+			MGlobal::displayError("Invalid subdivision level");
+			return MS::kFailure;
+		}
+		if (subdLevel > 6)
+		{
+			MGlobal::displayWarning("Only support upto 6 level of subdivisions");
+			subdLevel = 6;
+		}
+	}
+
 	// For testing only
 	MSelectionList curSel;
 	MGlobal::getActiveSelectionList(curSel);
@@ -147,24 +172,24 @@ MStatus FastCatCmd::doIt(const MArgList &args)
 
 	//----------------TEMP 
 
-	MTexture* displacementMapTexture = getDisplacementMapTexture( dagPath, 900, 900 );
-	int rowPitch, slicePitch;
-	char* rawData = (char*)displacementMapTexture->rawData( rowPitch, slicePitch );
-	int bytesPerPixel = displacementMapTexture->bytesPerPixel();
-	int width = rowPitch / bytesPerPixel;
-	int height = ( slicePitch / bytesPerPixel ) / width;
-	MTextureDescription textureDescription;
+	//MTexture* displacementMapTexture = getDisplacementMapTexture( dagPath, 512, 512 );
+	//int rowPitch, slicePitch;
+	//unsigned char* rawData = (unsigned char*)displacementMapTexture->rawData( rowPitch, slicePitch );
+	//int bytesPerPixel = displacementMapTexture->bytesPerPixel();
+	//int width = rowPitch / bytesPerPixel;
+	//int height = ( slicePitch / bytesPerPixel ) / width;
+	//MTextureDescription textureDescription;
 
-	displacementMapTexture->textureDescription( textureDescription );
+	//displacementMapTexture->textureDescription( textureDescription );
 
-	for( int i = 0; i < 100; i += 4 )
-	{
-		char r = rawData[i];
-		char g = rawData[i + 1];
-		char b = rawData[i + 2];
-		char a = rawData[i + 3];
-		int blarg = 0;
-	}
+	//for( int i = 0; i < 512; i += 4 )
+	//{
+	//	unsigned char r = rawData[i];
+	//	unsigned char g = rawData[i + 1];
+	//	unsigned char b = rawData[i + 2];
+	//	unsigned char a = rawData[i + 3];
+	//	int blarg = 0;
+	//}
 
 	//----------------
 
@@ -174,7 +199,7 @@ MStatus FastCatCmd::doIt(const MArgList &args)
 
 	std::shared_ptr<Camera> camera = Camera::createCamera(WINDOW_WIDTH, WINDOW_HEIGHT);
 
-	float baseTessFactor = 16.0f;
+	float baseTessFactor = static_cast<float>(1 << subdLevel);
 	std::shared_ptr<ControlMesh> mesh = std::make_shared<ControlMesh>();
 	mesh->initBaseMeshFromMaya(node);
 	mesh->maxSubdivisionLevel = ceil(log2(baseTessFactor));

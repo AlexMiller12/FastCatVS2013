@@ -55,5 +55,4 @@ void main()
 	vec3 specular = vec3(1.0, 1.0, 1.0) * 0.2 * pow(cosTheta, 64.0);
 	
 	frag_color = vec4(ambient + diffuse + specular, 1.0);
-	frag_color = vec4(fs_in.texCoords, 0.0, 1.0);
 }
