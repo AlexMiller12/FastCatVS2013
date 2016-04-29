@@ -39,7 +39,8 @@ public:
 	// numVertices - number of vertices in the base level
 	// itFace - iterator to the first face of the mesh
 	void createBaseLevel(int numVertices, MItMeshPolygon &itFace,
-		                 const EdgeSharpnessLUT *edgeSharpnessLUT = NULL);
+		                 const EdgeSharpnessLUT *edgeSharpnessLUT = NULL,
+						 bool hasUVs = false);
 
 	// Construct the next CCLevel and tables for computing vertex positions in the next level
 	// New vertex positions are not computed after call to this method
@@ -50,7 +51,7 @@ public:
 	void markEndPatches();
 
 	// Compute vertex positions for next level by dispatching corresponding CSs
-	void runSubdivisionTables(GLuint vbo);
+	void runSubdivisionTables(GLuint vbo, GLuint texCoordBuffer);
 
 	// Classify the faces in flist according what types of patches they are
 	// and put them into different collections.
@@ -78,7 +79,8 @@ private:
 
 	// faceVertexIndices store indices into vlist (not indices into shared vertex buffer)
 	Face *addFace(const std::vector<unsigned> &faceVertexIndices,
-		          const EdgeSharpnessLUT *edgeSharpnessLUT = NULL);
+		          const EdgeSharpnessLUT *edgeSharpnessLUT = NULL,
+				  const std::vector<unsigned> *p_uvIndices = NULL);
 
 	// Mark face to be subdivided
 	// Put face and its one-ring neighbor into subd_faces

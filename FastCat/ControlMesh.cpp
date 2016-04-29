@@ -5,6 +5,8 @@
 #include <maya/MGlobal.h>
 #include <maya/MUintArray.h>
 #include <maya/MDoubleArray.h>
+#include <maya/MFloatArray.h>
+#include <maya/MStringArray.h>
 
 
 ControlMesh::~ControlMesh()
@@ -45,6 +47,7 @@ void ControlMesh::adaptiveCCAllLevels()
 		levelsGenerated = true;
 		numVerticesAllLevels = levels.back()->firstVertexOffset + levels.back()->vlist.size();
 		verticesRawShared.resize(numVerticesAllLevels * 4);
+		vertexUVsShared.resize(numVerticesAllLevels * 4);
 	}
 
 	if (!isGLSetup)
@@ -55,6 +58,12 @@ void ControlMesh::adaptiveCCAllLevels()
 					 verticesRawShared.size() * sizeof(float),
 					 verticesRawShared.data(),
 					 GL_DYNAMIC_COPY); // make it READ for debugging. Use COPY when done
+		glGenBuffers(1, &texCoordBuffer);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, texCoordBuffer);
+		glBufferData(GL_SHADER_STORAGE_BUFFER,
+					 vertexUVsShared.size() * sizeof(float),
+					 vertexUVsShared.data(),
+					 GL_DYNAMIC_COPY);
 
 		std::string fpcsFileName(SHADER_DIR);
 		std::string epcsFileName(SHADER_DIR);
@@ -87,7 +96,7 @@ void ControlMesh::adaptiveCCAllLevels()
 
 	for (int i = 0; i < maxSubdivisionLevel; ++i)
 	{
-		levels[i]->runSubdivisionTables(vbo);
+		levels[i]->runSubdivisionTables(vbo, texCoordBuffer);
 	}
 
 #ifdef FAST_CAT_DEBUG_MODE
@@ -114,6 +123,19 @@ MStatus ControlMesh::initBaseMeshFromMaya(MObject shapeNode)
 
 	// Pack data into vertex buffer
 	MPointArray vertices;
+	MFloatArray uTexCoords, vTexCoords;
+	MStringArray uvSetNames;
+
+	fnMesh.getUVSetNames(uvSetNames);
+	int numUVSets = uvSetNames.length();
+	bool hasUVs = numUVSets > 0 && fnMesh.numUVs() > 0;
+
+	if (numUVSets > 1)
+	{
+		MGlobal::displayError("Only one UV set is supported right now");
+		return MS::kFailure;
+	}
+
 	fnMesh.getPoints(vertices); // in object space
 	int numVertices = vertices.length();
 	
@@ -147,7 +169,22 @@ MStatus ControlMesh::initBaseMeshFromMaya(MObject shapeNode)
 	MItMeshPolygon itFace(shapeNode);
 
 	level->createBaseLevel(numVertices, itFace,
-		                   edgeSharpnessLUT.empty()? NULL : &edgeSharpnessLUT);
+		                   edgeSharpnessLUT.empty()? NULL : &edgeSharpnessLUT,
+						   hasUVs);
+
+	if (hasUVs)
+	{
+		int numBaseLevelVertices = level->vlist.size();
+		vertexUVsShared.resize(numBaseLevelVertices * 4, 0.f); // padded to avoid branching in GPU kernels
+		fnMesh.getUVs(uTexCoords, vTexCoords, &uvSetNames[0]);
+
+		for (int i = 0; i < numBaseLevelVertices; ++i)
+		{
+			Vertex *v = &level->vlist[i];
+			vertexUVsShared[i * 4] = uTexCoords[v->uvIndex];
+			vertexUVsShared[i * 4 + 1] = vTexCoords[v->uvIndex];
+		}
+	}
 
 	return MS::kSuccess;
 }

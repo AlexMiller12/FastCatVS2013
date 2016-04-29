@@ -20,6 +20,10 @@ layout(std430, binding = 8) readonly buffer fps_tcs_block0
 
 layout (vertices = 16) out;
 
+in VS_OUT
+{
+	vec2 texCoords;
+} tcs_in[];
 
 patch out TCS_PER_PATCH_OUT
 {
@@ -31,6 +35,8 @@ out TCS_PER_CP_OUT
 {
 	vec3 cp1; // control points transformed by M_floor_s
 	vec3 cp2; // control points transformed by M_ceil_s
+	
+	vec2 texCoords;
 } tcs_per_cp_out[];
 
 
@@ -103,6 +109,7 @@ void main()
 		cp2 += Ms_ceil[h][j] * gl_in[4 * i + h].gl_Position.xyz;
 	}
 	
+	tcs_per_cp_out[gl_InvocationID].texCoords = tcs_in[gl_InvocationID].texCoords;
 	gl_out[gl_InvocationID].gl_Position = vec4(cp0, 1.0);
 	tcs_per_cp_out[gl_InvocationID].cp2 = (1.0 - (s - s_floor)) * cp1 + (s - s_floor) * cp2;
 	tcs_per_cp_out[gl_InvocationID].cp1 = (1.0 - (s - s_floor)) * cp1 + (s - s_floor) * cp0;

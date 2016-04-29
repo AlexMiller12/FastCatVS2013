@@ -48,10 +48,12 @@ layout(std140, binding = 1) uniform cbPerLevel
 
 
 layout(location = 0) in vec4 position;
+layout(location = 1) in vec2 inTexCoords;
 
 out TES_OUT
 {
 	vec3 normal;
+	vec2 texCoords;
 } vs_out;
 
 
@@ -149,4 +151,5 @@ void main()
 	// the model is not uniformly scaled
 	vec3 nrm = normalize(cross(tangent, bitangent));
 	vs_out.normal = vec3(g_mWorld * vec4(nrm, 0.0));
+	vs_out.texCoords = inTexCoords;
 }

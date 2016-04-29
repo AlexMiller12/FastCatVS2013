@@ -15,6 +15,7 @@ public:
 	int valence = 0;
 	bool isTagged = false; // is tagged for subdivision in the current level
 	Edge *edge = NULL; // one of the edges going out from this vertex
+	unsigned uvIndex;
 
 	bool isUnevaluable();
 

@@ -15,6 +15,17 @@ layout(std140, binding = 1) uniform cbPerLevel
 layout (vertices = 16) out;
 
 
+in VS_OUT
+{
+	vec2 texCoords;
+} tcs_in[];
+
+out TCS_OUT
+{
+	vec2 texCoords;
+} tcs_out[];
+
+
 void main()
 {
 	// tessfactors are set once per patch
@@ -29,5 +40,6 @@ void main()
 	}
 	
 	// pass through control point position
+	tcs_out[gl_InvocationID].texCoords = tcs_in[gl_InvocationID].texCoords;
 	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
 }

@@ -85,7 +85,7 @@ void CCLevel::classifyPatches()
 }
 
 
-void CCLevel::runSubdivisionTables(GLuint vbo)
+void CCLevel::runSubdivisionTables(GLuint vbo, GLuint texCoordBuffer)
 {
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vbo); // shared vertex buffer (4-float positions)
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, tableBuffers[0]); // f_offsetValenceTable
@@ -95,6 +95,7 @@ void CCLevel::runSubdivisionTables(GLuint vbo)
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, tableBuffers[4]); // v_neighbourIndexTable
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, tableBuffers[5]); // e_sharpnessTable
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, tableBuffers[6]); // v_sharpnessTable
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, texCoordBuffer); // each vertex has 4 floats (u, v, and 2 dummies)
 
 	// compute face points
 	glUseProgram(fpProgram);
@@ -610,7 +611,8 @@ std::shared_ptr<CCLevel> CCLevel::adaptiveCatmullClark()
 
 
 void CCLevel::createBaseLevel(int numVertices, MItMeshPolygon &itFace,
-	                          const EdgeSharpnessLUT *edgeSharpnessLUT)
+	                          const EdgeSharpnessLUT *edgeSharpnessLUT,
+							  bool hasUVs)
 {
 	isBaseLevel = true;
 	lut.clear();
@@ -641,14 +643,22 @@ void CCLevel::createBaseLevel(int numVertices, MItMeshPolygon &itFace,
 	{
 		int nv = itFace.polygonVertexCount();
 		std::vector<unsigned> indices; // in CCW order
-		
+		std::vector<unsigned> uvIndices; // one for each vertex
+		int uvIndex;
+
 		for (int i = 0; i < nv; ++i)
 		{
 			indices.push_back(itFace.vertexIndex(i));
+
+			if (hasUVs)
+			{
+				itFace.getUVIndex(i, uvIndex);
+				uvIndices.push_back(uvIndex);
+			}
 		}
 		
 		// Create face and corresponding (half) edges
-		addFace(indices, edgeSharpnessLUT);
+		addFace(indices, edgeSharpnessLUT, hasUVs? &uvIndices : NULL);
 
 		itFace.next();
 	}
@@ -676,7 +686,8 @@ void CCLevel::createBaseLevel(int numVertices, MItMeshPolygon &itFace,
 
 
 Face *CCLevel::addFace(const std::vector<unsigned> &faceVertexIndices,
-	                   const EdgeSharpnessLUT *edgeSharpnessLUT)
+	                   const EdgeSharpnessLUT *edgeSharpnessLUT,
+					   const std::vector<unsigned> *p_uvIndices)
 {
 	int startIdx = elist.size();
 	int numEdges = faceVertexIndices.size();
@@ -718,6 +729,11 @@ Face *CCLevel::addFace(const std::vector<unsigned> &faceVertexIndices,
 			{
 				e->sharpness = itSharpEdge->second;
 			}
+		}
+
+		if (p_uvIndices)
+		{
+			org->uvIndex =  (*p_uvIndices)[i];
 		}
 
 		// check if the dual edge exist
