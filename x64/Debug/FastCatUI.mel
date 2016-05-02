@@ -1,0 +1,74 @@
+global proc FastCat_assignSharpnessButtonCmd(float $sharpness, int $subdLevel)
+{
+    string $edges[] = `ls -selection`;
+    
+    if (size($edges) == 0)
+    {
+        return;
+    }
+    
+    if ($sharpness < 0)
+    {
+        error "Invalid sharpness";
+        return;
+    }
+    if ($sharpness > float($subdLevel))
+    {
+        warning "Sharpness cannot exceed subdivision level";
+        $sharpness = float($subdLevel);
+    }
+    
+    int $i;
+    for ($i = 0; $i < size($edges); ++$i)
+    {
+        if (`match ".e" $edges[$i]` == "")
+        {
+            error "Please only select edges";
+            return;
+        }
+    }
+    
+    polyCrease -ch true -value $sharpness -vertexValue $sharpness $edges;
+}
+
+global proc FastCat_createUI()
+{
+    global string $FastCat_Window;
+    $FastCat_Window = `window -sizeable false`;
+        string $lo = `columnLayout`;
+        int $loWidth = `columnLayout -query -width $lo`;
+            frameLayout -label "FastCat Parameters" -width $loWidth;
+                columnLayout;
+                    global string $FastCat_subdLevelSlider;
+                    $FastCat_subdLevelSlider = `intSliderGrp -label "Subdivision Level" -field true -minValue 0 -maxValue 6 -value 1`;
+                    global string $FastCat_sharpnessSlider;
+                    $FastCat_sharpnessSlider = `floatSliderGrp -label "Sharpness" -field true -minValue 0.0 -maxValue 6.0 -value 0.0`;
+                    setParent ..;
+                setParent ..;
+            rowLayout -height 50 -width $loWidth -numberOfColumns 4
+                -columnWidth4 100 100 100 300
+                -columnAttach 1 "left" 5
+                -columnAttach 2 "left" 10
+                -columnAttach 3 "left" 10
+                -columnAttach 4 "right" 0;
+                button -label "Preview" -width 100 -command "fastcat -lvl `intSliderGrp -query -value $FastCat_subdLevelSlider`";
+                button -label "Assign Sharpness" -width 100 -command "FastCat_assignSharpnessButtonCmd(`floatSliderGrp -query -value $FastCat_sharpnessSlider`, `intSliderGrp -query -value $FastCat_subdLevelSlider`)";
+                button -label "Create Mesh" -width 100;
+                button -label "Cancel" -width 100 -command "deleteUI $FastCat_Window";
+        
+    showWindow $FastCat_Window;
+}
+
+global proc FastCat_addPluginMenu()
+{
+    string $pp = `pluginInfo -q -path FastCat`;
+    
+    menu -label "FastCat" -p MayaWindow FastCatPluginMenu;
+        menuItem -label "Control Panel" -command "FastCat_createUI";
+}
+
+global proc LSystemCmd_deletePluginMenu()
+{
+    deleteUI FastCatPluginMenu;
+};
+
