@@ -885,8 +885,21 @@ void EndPatchRenderer::generateIndexBuffer()
 		if (v->valence < 0)
 		{
 			// place holders
+			int startOffset = accumOffset;
+
 			ovb.push_back(accumOffset);
 			ovb.push_back(v->valence);
+			v->getOneRingIndices(firstVertexOffset, nib);
+			accumOffset += 2 * (-v->valence - 1) + 1;
+
+			//if (accumOffset != nib.size())
+			//{
+			//	accumOffset = nib.size();
+			//	nib[startOffset] = 0;
+			//}
+
+			//int debugSize = nib.size();
+			//std::cout << "";
 		}
 		else
 		{
@@ -894,6 +907,9 @@ void EndPatchRenderer::generateIndexBuffer()
 			ovb.push_back(v->valence);
 			v->getOneRingIndices(firstVertexOffset, nib);
 			accumOffset += 2 * v->valence;
+
+			//int debugSize = nib.size();
+			//std::cout << "";
 		}
 	}
 

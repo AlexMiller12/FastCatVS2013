@@ -15,7 +15,8 @@ public:
 	int valence = 0;
 	bool isTagged = false; // is tagged for subdivision in the current level
 	Edge *edge = NULL; // one of the edges going out from this vertex
-	unsigned uvIndex;
+
+	int numTrackableOutgoingEdges();
 
 	bool isUnevaluable();
 
@@ -117,7 +118,7 @@ public:
 	Edge *_next = NULL;
 	Edge *_prev = NULL;
 
-	inline bool isSharp() { return sharpness > FLT_EPSILON; }
+	inline bool isSharp() { return sharpness > FLT_EPSILON || !dual; }
 };
 
 
@@ -131,7 +132,9 @@ public:
 	bool wasMarkedForSubdivision = false; // true if the parent of this face was marked
 	int newIdx = -1;
 
+	int numBoundaryVertices();
 	int numCreases();
+	bool hasNonregularBoundary();
 	bool hasTriangleHead();
 	void getPartialPatchInfo(int *p_numTriHeands, bool *p_connected) const;
 

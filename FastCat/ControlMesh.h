@@ -14,10 +14,9 @@ public:
 	int numVerticesAllLevels;
 	std::vector<std::shared_ptr<CCLevel> > levels; // levels[0] is unsubdivided
 	std::vector<float> verticesRawShared; // shared by all CCLevels
-	std::vector<float> vertexUVsShared;
 
 	bool isGLSetup;
-	GLuint vbo, texCoordBuffer;
+	GLuint vbo;
 	GLuint fpProgram, epProgram, vpProgram;
 
 	ControlMesh() : maxSubdivisionLevel(6), isGLSetup(false), levelsGenerated(false), debugBuffersGenerated(false) {}

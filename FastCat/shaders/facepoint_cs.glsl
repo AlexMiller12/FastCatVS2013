@@ -51,11 +51,6 @@ layout(std430, binding = 7) readonly buffer block7
 	float v_sharpnessTable[];
 };
 
-layout(std430, binding = 8) buffer block8
-{
-	float texCoordBuffer[];
-};
-
 
 void main()
 {
@@ -69,18 +64,14 @@ void main()
 		float fn = float(valence);
 		
 		float q = 0.0;
-		float newTexCoord = 0.0;
 		int idx;
 		for (int i = 0; i < valence; ++i)
 		{
 			idx = f_neighbourIndexTable[offset + i];
 			q += vertexBuffer[4 * (srcOffset + idx) + elemIdx];
-			newTexCoord += texCoordBuffer[4 * (srcOffset + idx) + elemIdx];
 		}
 		
 		q /= fn;
-		newTexCoord /= fn;
 		vertexBuffer[4 * (destOffset1 + faceIdx) + elemIdx] = q;
-		texCoordBuffer[4 * (destOffset1 + faceIdx) + elemIdx] = newTexCoord;
 	}
 }

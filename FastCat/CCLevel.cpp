@@ -1,5 +1,6 @@
 #include "CCLevel.h"
 #include "ShaderHelper.h"
+#include <unordered_map>
 
 
 void CCLevel::classifyPatches()
@@ -52,10 +53,7 @@ void CCLevel::classifyPatches()
 
 		if (isTagged)
 		{
-			if (numCreases == 0)
-			{
-				endPatches.push_back(f);
-			}
+			endPatches.push_back(f);
 		}
 		else if (wasTagged && !hasTriangleHead)
 		{
@@ -85,7 +83,7 @@ void CCLevel::classifyPatches()
 }
 
 
-void CCLevel::runSubdivisionTables(GLuint vbo, GLuint texCoordBuffer)
+void CCLevel::runSubdivisionTables(GLuint vbo)
 {
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vbo); // shared vertex buffer (4-float positions)
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, tableBuffers[0]); // f_offsetValenceTable
@@ -95,7 +93,6 @@ void CCLevel::runSubdivisionTables(GLuint vbo, GLuint texCoordBuffer)
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, tableBuffers[4]); // v_neighbourIndexTable
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, tableBuffers[5]); // e_sharpnessTable
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, tableBuffers[6]); // v_sharpnessTable
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, texCoordBuffer); // each vertex has 4 floats (u, v, and 2 dummies)
 
 	// compute face points
 	glUseProgram(fpProgram);
@@ -355,7 +352,8 @@ void CCLevel::markEndPatches()
 			}
 		}
 
-		if (f->numCreases() > 1)
+		if ((isBaseLevel || f->wasMarkedForSubdivision) &&
+			(f->numCreases() > 1 || f->hasNonregularBoundary()))
 		{
 			f->isMarkedForSubdivision = true;
 		}
@@ -382,7 +380,7 @@ void CCLevel::markEndPatches()
 	for (int i = 0; i < vlist.size(); ++i)
 	{
 		Vertex *v = &vlist[i];
-		if (v->valence > 0 && v->valence != 4) // ignore boundary
+		if (v->valence > 0 && v->valence != 4)
 		{
 			v->isTagged = true;
 		}
@@ -424,7 +422,8 @@ std::shared_ptr<CCLevel> CCLevel::adaptiveCatmullClark()
 			markSubdivideFace(f, subd_faces, subd_edges, subd_vertices, true);
 		}
 
-		if (f->numCreases() > 1)
+		if ((isBaseLevel || f->wasMarkedForSubdivision) &&
+			(f->numCreases() > 1 || f->hasNonregularBoundary()))
 		{
 			markSubdivideFace(f, subd_faces, subd_edges, subd_vertices);
 		}
@@ -451,7 +450,7 @@ std::shared_ptr<CCLevel> CCLevel::adaptiveCatmullClark()
 	for (int i = 0; i < vlist.size(); ++i)
 	{
 		Vertex *v = &vlist[i];
-		if (v->valence > 0 && v->valence != 4) // ignore boundary
+		if (v->valence > 0 && v->valence != 4)
 		{
 			v->isTagged = true;
 		}
@@ -538,13 +537,16 @@ std::shared_ptr<CCLevel> CCLevel::adaptiveCatmullClark()
 		Edge *e = &nextLevel->elist[i];
 		if (!e->dual)
 		{
+			e->sharpness = -1.f;
+
 			if (e->origin->valence > 0)
 			{
-				e->origin->valence *= -1;
+				// Beware of the special case where disconnected faces sharing the same vertex
+				e->origin->valence = -e->origin->numTrackableOutgoingEdges() - 1;
 			}
 			if (e->dest->valence > 0)
 			{
-				e->dest->valence *= -1;
+				e->dest->valence = -e->dest->numTrackableOutgoingEdges() - 1;
 			}
 		}
 	}
@@ -612,7 +614,7 @@ std::shared_ptr<CCLevel> CCLevel::adaptiveCatmullClark()
 
 void CCLevel::createBaseLevel(int numVertices, MItMeshPolygon &itFace,
 	                          const EdgeSharpnessLUT *edgeSharpnessLUT,
-							  bool hasUVs)
+							  const std::vector<float> *p_vertexUVs)
 {
 	isBaseLevel = true;
 	lut.clear();
@@ -649,16 +651,10 @@ void CCLevel::createBaseLevel(int numVertices, MItMeshPolygon &itFace,
 		for (int i = 0; i < nv; ++i)
 		{
 			indices.push_back(itFace.vertexIndex(i));
-
-			if (hasUVs)
-			{
-				itFace.getUVIndex(i, uvIndex);
-				uvIndices.push_back(uvIndex);
-			}
 		}
 		
 		// Create face and corresponding (half) edges
-		addFace(indices, edgeSharpnessLUT, hasUVs? &uvIndices : NULL);
+		addFace(indices, edgeSharpnessLUT);
 
 		itFace.next();
 	}
@@ -670,13 +666,15 @@ void CCLevel::createBaseLevel(int numVertices, MItMeshPolygon &itFace,
 		// boundary
 		if (!e.dual)
 		{
+			e.sharpness = -1.f;
+
 			if (e.origin->valence > 0)
 			{
-				e.origin->valence *= -1;
+				e.origin->valence = -e.origin->numTrackableOutgoingEdges() - 1;
 			}
 			if (e.dest->valence > 0)
 			{
-				e.dest->valence *= -1;
+				e.dest->valence = -e.dest->numTrackableOutgoingEdges() - 1;
 			}
 		}
 	}
@@ -686,8 +684,7 @@ void CCLevel::createBaseLevel(int numVertices, MItMeshPolygon &itFace,
 
 
 Face *CCLevel::addFace(const std::vector<unsigned> &faceVertexIndices,
-	                   const EdgeSharpnessLUT *edgeSharpnessLUT,
-					   const std::vector<unsigned> *p_uvIndices)
+	                   const EdgeSharpnessLUT *edgeSharpnessLUT)
 {
 	int startIdx = elist.size();
 	int numEdges = faceVertexIndices.size();
@@ -729,11 +726,6 @@ Face *CCLevel::addFace(const std::vector<unsigned> &faceVertexIndices,
 			{
 				e->sharpness = itSharpEdge->second;
 			}
-		}
-
-		if (p_uvIndices)
-		{
-			org->uvIndex =  (*p_uvIndices)[i];
 		}
 
 		// check if the dual edge exist

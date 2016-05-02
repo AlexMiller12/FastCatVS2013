@@ -26,15 +26,12 @@ in TCS_PER_CP_OUT
 {
 	vec3 cp1; // control points transformed by M_floor_s
 	vec3 cp2; // control points transformed by M_ceil_s
-	
-	vec2 texCoords;
 } tes_per_cp_in[];
 
 
 out TES_OUT
 {
 	vec3 normal;
-	vec2 texCoords;
 } tes_out;
 
 
@@ -103,14 +100,6 @@ void main()
 		}
 	}
 	
-	// for uvs, we just do bilinear interpolation
-	vec2 uTexCoords[2];
-	
-	uTexCoords[0] = (1.0 - gl_TessCoord.x) * tes_per_cp_in[5].texCoords +
-		gl_TessCoord.x * tes_per_cp_in[6].texCoords;
-	uTexCoords[1] = (1.0 - gl_TessCoord.x) * tes_per_cp_in[9].texCoords +
-		gl_TessCoord.x * tes_per_cp_in[10].texCoords;
-	
 	// treat the 4 resulting points as CPs for a new BSpline
 	// and evaluate it along v dimension
 	vec3 localPos = vec3(0.0, 0.0, 0.0);
@@ -126,17 +115,11 @@ void main()
 		bitangent += D[i] * BUCP[i];
 	}
 	
-	vec2 texCoords;
-	
-	texCoords = (1.0 - gl_TessCoord.y) * uTexCoords[0] +
-		gl_TessCoord.y * uTexCoords[1];
-	
 	// OpenGL uses right-handed rule
 	vec3 normal = normalize(cross(tangent, bitangent));
 	
 	// for the normal, the inverse transpose of g_mWorld need to be used if
 	// the model is not uniformly scaled
-	tes_out.texCoords = texCoords;
 	tes_out.normal = vec3(g_mWorld * vec4(normal, 0.0));
 	gl_Position = g_mWorldViewProjection * vec4(localPos, 1.0);
 }

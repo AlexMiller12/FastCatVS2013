@@ -4,9 +4,35 @@
 #include <maya/MGlobal.h>
 
 
+int Vertex::numTrackableOutgoingEdges()
+{
+	Edge *cur = edge;
+	int count = 0;
+
+	do
+	{
+		++count;
+		cur = cur->vNext();
+	} while (cur != edge);
+
+	return count;
+}
+
+
 void Vertex::getOneRingIndices(int firstVertexOffset, std::vector<int> &indices)
 {
 	Edge *cur = edge;
+	Edge *start = edge;
+
+	if (valence < 0) // boundary
+	{
+		while (cur->dual)
+		{
+			cur = cur->vNext();
+		}
+
+		start = cur;
+	}
 
 	do
 	{
@@ -15,7 +41,12 @@ void Vertex::getOneRingIndices(int firstVertexOffset, std::vector<int> &indices)
 		indices.push_back(firstVertexOffset + cur->fNext()->dest->idx);
 
 		cur = cur->vNext();
-	} while (cur != edge);
+	} while (cur != start);
+
+	if (valence < 0)
+	{
+		indices.push_back(firstVertexOffset + cur->vPrev()->fPrev()->origin->idx);
+	}
 }
 
 
@@ -167,14 +198,14 @@ bool Vertex::isUnevaluable()
 }
 
 
-int Face::numCreases()
+int Face::numBoundaryVertices()
 {
 	Edge *cur = right;
 	int count = 0;
 
 	do
 	{
-		if (cur->sharpness > 0.f)
+		if (cur->origin->valence < 0)
 		{
 			++count;
 		}
@@ -182,6 +213,41 @@ int Face::numCreases()
 	} while (cur != right);
 
 	return count;
+}
+
+
+int Face::numCreases()
+{
+	Edge *cur = right;
+	int count = 0;
+
+	do
+	{
+		if (cur->sharpness > 0.f || !cur->dual)
+		{
+			++count;
+		}
+		cur = cur->fNext();
+	} while (cur != right);
+
+	return count;
+}
+
+
+bool Face::hasNonregularBoundary()
+{
+	Edge *cur = right;
+
+	do
+	{
+		if (cur->origin->valence == -2 || cur->origin->valence < -3)
+		{
+			return true;
+		}
+		cur = cur->fNext();
+	} while (cur != right);
+
+	return false;
 }
 
 
@@ -329,9 +395,28 @@ void Face::getOneRingIndices(int firstVertexOffset, unsigned *outIndices)
 		assert(cur->origin->valence == 4);
 
 		indexCache.push_back(cur->origin->idx + firstVertexOffset);
-		indexCache.push_back(cur->vPrev()->dest->idx + firstVertexOffset);
-		indexCache.push_back(cur->vPrev()->vPrev()->dest->idx + firstVertexOffset);
-		indexCache.push_back(cur->vPrev()->vPrev()->fNext()->dest->idx + firstVertexOffset);
+
+		if (cur->origin->valence < 0) // boundary
+		{
+			if (cur->sharpness < 0.f)
+			{
+				indexCache.push_back(indexCache.back());
+				indexCache.push_back(cur->vNext()->fPrev()->origin->idx + firstVertexOffset);
+				indexCache.push_back(indexCache.back());
+			}
+			else
+			{
+				indexCache.push_back(cur->vPrev()->dest->idx + firstVertexOffset);
+				indexCache.push_back(cur->origin->idx + firstVertexOffset);
+				indexCache.push_back(cur->vPrev()->dest->idx + firstVertexOffset);
+			}
+		}
+		else
+		{
+			indexCache.push_back(cur->vPrev()->dest->idx + firstVertexOffset);
+			indexCache.push_back(cur->vPrev()->vPrev()->dest->idx + firstVertexOffset);
+			indexCache.push_back(cur->vPrev()->vPrev()->fNext()->dest->idx + firstVertexOffset);
+		}
 
 		cur = cur->fNext();
 	} while (cur != right);

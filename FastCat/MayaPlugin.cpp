@@ -39,6 +39,18 @@ MStatus initializePlugin( MObject obj )
 	//TODO temp?
 	//Singleton<FastCatRenderer>::instance();
 
+	status = MGlobal::executeCommand("source \"" + plugin.loadPath() + "/FastCatUI.mel\"");
+	if (!status) {
+		status.perror("source FastCatUI.mel");
+		return status;
+	}
+
+	status = plugin.registerUI("FastCat_addPluginMenu", "FastCat_deletePluginMenu");
+	if (!status) {
+		status.perror("registerUI");
+		return status;
+	}
+
 	return status;
 }
 

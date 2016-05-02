@@ -27,7 +27,6 @@ layout(std140, binding = 1) uniform cbPerLevel
 in TES_OUT
 {
 	vec3 normal;
-	vec2 texCoords;
 } fs_in;
 
 
@@ -50,8 +49,8 @@ void main()
 	vec3 color = g_ObjectColor.xyz;
 	float cosTheta = clamp(dot(g_vLightDir, nrm), 0.0, 1.0);
 	
-	vec3 ambient = color * 0.1;
-	vec3 diffuse = color * 0.9 * cosTheta;
+	vec3 ambient = color * 0.2;
+	vec3 diffuse = color * 0.8 * cosTheta;
 	vec3 specular = vec3(1.0, 1.0, 1.0) * 0.2 * pow(cosTheta, 64.0);
 	
 	frag_color = vec4(ambient + diffuse + specular, 1.0);

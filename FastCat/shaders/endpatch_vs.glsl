@@ -48,12 +48,10 @@ layout(std140, binding = 1) uniform cbPerLevel
 
 
 layout(location = 0) in vec4 position;
-layout(location = 1) in vec2 inTexCoords;
 
 out TES_OUT
 {
 	vec3 normal;
-	vec2 texCoords;
 } vs_out;
 
 
@@ -80,8 +78,41 @@ void main()
 	vec3 tangent = vec3(0.0, 0.0, 0.0);
 	vec3 bitangent = vec3(0.0, 0.0, 0.0);
 	vec3 out_pos = vec3(0.0, 0.0, 0.0);
+	vec3 nrm = vec3(0.0, 0.0, 0.0);
 	
-	if (valence != 4)
+	if (valence == -2)
+	{
+		int idx_neighbour = g_neighbourIndexBuffer[offset];
+		int idx_diagonal = g_neighbourIndexBuffer[offset + 1];
+		vec3 npos = g_vertexBuffer[idx_neighbour].xyz;
+		vec3 dpos = g_vertexBuffer[idx_diagonal].xyz;
+		
+		out_pos = position.xyz;
+		nrm = normalize(cross(npos - out_pos, dpos - out_pos));
+	}
+	else if (valence <= -3)
+	{
+		valence = abs(valence) - 1;
+		out_pos = position.xyz;
+		int bidx1 = g_neighbourIndexBuffer[offset];
+		int bidx2 = g_neighbourIndexBuffer[offset + 2 * valence];
+		vec3 bpos1 = g_vertexBuffer[bidx1].xyz;
+		vec3 bpos2 = g_vertexBuffer[bidx2].xyz;
+		
+		for (int i = 0; i < valence; ++i)
+		{
+			int idx_neighbour = g_neighbourIndexBuffer[offset + 2 * i];
+			int idx_diagonal = g_neighbourIndexBuffer[offset + 2 * i + 1];
+			vec3 npos = g_vertexBuffer[idx_neighbour].xyz;
+			vec3 dpos = g_vertexBuffer[idx_diagonal].xyz;
+			
+			nrm += normalize(cross(npos - out_pos, dpos - out_pos));
+		}
+		
+		nrm = normalize(nrm);
+		out_pos = 1.0/6.0 * bpos1 + 4.0/6.0 * out_pos + 1.0/6.0 * bpos2;
+	}
+	else if (valence != 4)
 	{
 		float cos_fn = cos(M_PI / fn);
 		float tmp = 0.25 * (sqrt(4.0 + cos_fn * cos_fn) - cos_fn);
@@ -105,6 +136,7 @@ void main()
 			bitangent += alpha2 * npos + beta2 * dpos;
 		}
 		out_pos /= (fn * (fn + 5.0));
+		nrm = normalize(cross(tangent, bitangent));
 	}
 	else
 	{
@@ -143,13 +175,12 @@ void main()
 		
 		tangent = diag0_dx + diag1_dx + midcross0_dx + midcross1_dx;
 		bitangent = diag0_dy + diag1_dy + midcross0_dy + midcross1_dy;
+		nrm = normalize(cross(tangent, bitangent));
 	}
 	
 	gl_Position = g_mWorldViewProjection * vec4(out_pos, 1.0);
 	
 	// for the normal, the inverse transpose of g_mWorld need to be used if
 	// the model is not uniformly scaled
-	vec3 nrm = normalize(cross(tangent, bitangent));
 	vs_out.normal = vec3(g_mWorld * vec4(nrm, 0.0));
-	vs_out.texCoords = inTexCoords;
 }

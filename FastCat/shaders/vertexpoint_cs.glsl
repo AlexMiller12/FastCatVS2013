@@ -51,11 +51,6 @@ layout(std430, binding = 7) readonly buffer block7
 	float v_sharpnessTable[];
 };
 
-layout(std430, binding = 8) buffer block8
-{
-	float texCoordBuffer[];
-};
-
 
 void main()
 {
@@ -72,31 +67,24 @@ void main()
 		int bidx2 = v_ovpc1c2Table[5 * vertexIdx + 4];
 		float fn = float(valence);
 		float q = 0.0;
-		float newTexCoord = 0.0;
 		
 		float v = vertexBuffer[4 * (srcOffset + parentIdx) + elemIdx];
-		float vt = texCoordBuffer[4 * (srcOffset + parentIdx) + elemIdx];
 		
 		if (valence < -2) // boundary rule
 		{
 			float c = vertexBuffer[4 * (srcOffset + bidx1) + elemIdx] +
 				vertexBuffer[4 * (srcOffset + bidx2) + elemIdx];
-			float ct = texCoordBuffer[4 * (srcOffset + bidx1) + elemIdx] +
-				texCoordBuffer[4 * (srcOffset + bidx2) + elemIdx];
 			q = 0.75 * v + 0.125 * c;
-			newTexCoord = 0.75 * vt + 0.125 * ct;
 		}
 		else if (valence == -2) // corner rule
 		{
 			q = v;
-			newTexCoord = vt;
 		}
 		else
 		{
 			float wv = (fn - 2.0) / fn;
 			float wp = 1.0 / (fn * fn);
 			float p = 0.0;
-			float pt = 0.0;
 			int pidx1, pidx2;
 			
 			for (int i = 0; i < valence; ++i)
@@ -105,49 +93,38 @@ void main()
 				pidx2 = v_neighbourIndexTable[offset + 2 * i + 1];
 				p += vertexBuffer[4 * (srcOffset + pidx1) + elemIdx] +
 					vertexBuffer[4 * (srcOffset + pidx2) + elemIdx];
-				pt += texCoordBuffer[4 * (srcOffset + pidx1) + elemIdx] +
-					texCoordBuffer[4 * (srcOffset + pidx2) + elemIdx];
 			}
 			
 			float s = wv * v + wp * p;
-			float st = wv * vt + wp * pt;
 			
 			if (bidx1 != -1)
 			{
 				float c = vertexBuffer[4 * (srcOffset + bidx1) + elemIdx] +
 					vertexBuffer[4 * (srcOffset + bidx2) + elemIdx];
-				float ct = texCoordBuffer[4 * (srcOffset + bidx1) + elemIdx] +
-					texCoordBuffer[4 * (srcOffset + bidx2) + elemIdx];
 			
 				if (sharpness >= 1.0) // pure crease rule
 				{
 					q = 0.75 * v + 0.125 * c;
-					newTexCoord = 0.75 * vt + 0.125 * ct;
 				}
 				else // blend between crease and smooth
 				{
 					q = mix(s, 0.75 * v + 0.125 * c, sharpness);
-					newTexCoord = mix(st, 0.75 * vt + 0.125 * ct, sharpness);
 				}
 			}
 			else if (sharpness >= 1.0)
 			{
 				q = v;
-				newTexCoord = vt;
 			}
 			else if (sharpness > 0.0) // blend between corner and smooth
 			{
 				q = mix(s, v, sharpness);
-				newTexCoord = mix(st, vt, sharpness);
 			}
 			else
 			{
 				q = s;
-				newTexCoord = st;
 			}
 		}
 		
 		vertexBuffer[4 * (destOffset3 + vertexIdx) + elemIdx] = q;
-		texCoordBuffer[4 * (destOffset3 + vertexIdx) + elemIdx] = newTexCoord;
 	}
 }

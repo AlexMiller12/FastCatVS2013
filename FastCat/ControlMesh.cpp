@@ -47,7 +47,6 @@ void ControlMesh::adaptiveCCAllLevels()
 		levelsGenerated = true;
 		numVerticesAllLevels = levels.back()->firstVertexOffset + levels.back()->vlist.size();
 		verticesRawShared.resize(numVerticesAllLevels * 4);
-		vertexUVsShared.resize(numVerticesAllLevels * 4);
 	}
 
 	if (!isGLSetup)
@@ -58,12 +57,6 @@ void ControlMesh::adaptiveCCAllLevels()
 					 verticesRawShared.size() * sizeof(float),
 					 verticesRawShared.data(),
 					 GL_DYNAMIC_COPY); // make it READ for debugging. Use COPY when done
-		glGenBuffers(1, &texCoordBuffer);
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, texCoordBuffer);
-		glBufferData(GL_SHADER_STORAGE_BUFFER,
-					 vertexUVsShared.size() * sizeof(float),
-					 vertexUVsShared.data(),
-					 GL_DYNAMIC_COPY);
 
 		std::string fpcsFileName(SHADER_DIR);
 		std::string epcsFileName(SHADER_DIR);
@@ -96,7 +89,7 @@ void ControlMesh::adaptiveCCAllLevels()
 
 	for (int i = 0; i < maxSubdivisionLevel; ++i)
 	{
-		levels[i]->runSubdivisionTables(vbo, texCoordBuffer);
+		levels[i]->runSubdivisionTables(vbo);
 	}
 
 #ifdef FAST_CAT_DEBUG_MODE
@@ -147,6 +140,16 @@ MStatus ControlMesh::initBaseMeshFromMaya(MObject shapeNode)
 		verticesRawShared.push_back(1.f);
 	}
 
+	fnMesh.getUVs(uTexCoords, vTexCoords, &uvSetNames[0]);
+	int numUVs = uTexCoords.length();
+	std::vector<float> vertexUVs;
+
+	for (int i = 0; i < numUVs; ++i)
+	{
+		vertexUVs.push_back(uTexCoords[i]);
+		vertexUVs.push_back(vTexCoords[i]);
+	}
+
 	// Get creases and their sharpness
 	MUintArray eids;
 	MDoubleArray sharpnesses;
@@ -169,22 +172,7 @@ MStatus ControlMesh::initBaseMeshFromMaya(MObject shapeNode)
 	MItMeshPolygon itFace(shapeNode);
 
 	level->createBaseLevel(numVertices, itFace,
-		                   edgeSharpnessLUT.empty()? NULL : &edgeSharpnessLUT,
-						   hasUVs);
-
-	if (hasUVs)
-	{
-		int numBaseLevelVertices = level->vlist.size();
-		vertexUVsShared.resize(numBaseLevelVertices * 4, 0.f); // padded to avoid branching in GPU kernels
-		fnMesh.getUVs(uTexCoords, vTexCoords, &uvSetNames[0]);
-
-		for (int i = 0; i < numBaseLevelVertices; ++i)
-		{
-			Vertex *v = &level->vlist[i];
-			vertexUVsShared[i * 4] = uTexCoords[v->uvIndex];
-			vertexUVsShared[i * 4 + 1] = vTexCoords[v->uvIndex];
-		}
-	}
+		                   edgeSharpnessLUT.empty()? NULL : &edgeSharpnessLUT);
 
 	return MS::kSuccess;
 }

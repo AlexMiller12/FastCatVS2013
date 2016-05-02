@@ -51,11 +51,6 @@ layout(std430, binding = 7) readonly buffer block7
 	float v_sharpnessTable[];
 };
 
-layout(std430, binding = 8) buffer block8
-{
-	float texCoordBuffer[];
-};
-
 
 void main()
 {
@@ -76,31 +71,18 @@ void main()
 			vertexBuffer[4 * (srcOffset + idx3) + elemIdx] +
 			vertexBuffer[4 * (srcOffset + idx4) + elemIdx]
 			);
-		float tSmooth = 0.25 * (
-			texCoordBuffer[4 * (srcOffset + idx1) + elemIdx] +
-			texCoordBuffer[4 * (srcOffset + idx2) + elemIdx] +
-			texCoordBuffer[4 * (srcOffset + idx3) + elemIdx] +
-			texCoordBuffer[4 * (srcOffset + idx4) + elemIdx]
-			);
 			
 		float q = qSmooth;
-		float newTexCoord = tSmooth;
 		if (sharpness > 0.0 && sharpness < 1.0)
 		{
 			float qSharp = 0.5 * (
 				vertexBuffer[4 * (srcOffset + idx1) + elemIdx] +
 				vertexBuffer[4 * (srcOffset + idx3) + elemIdx]
 				);
-			float tSharp = 0.5 * (
-				texCoordBuffer[4 * (srcOffset + idx1) + elemIdx] +
-				texCoordBuffer[4 * (srcOffset + idx3) + elemIdx]
-				);
 			
 			q = mix(qSmooth, qSharp, sharpness);
-			newTexCoord = mix(tSmooth, tSharp, sharpness);
 		}
 		
 		vertexBuffer[4 * (destOffset2 + edgeIdx) + elemIdx] = q;
-		texCoordBuffer[4 * (destOffset2 + edgeIdx) + elemIdx] = newTexCoord;
 	}
 }
