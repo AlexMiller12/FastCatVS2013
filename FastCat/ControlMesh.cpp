@@ -121,7 +121,7 @@ MStatus ControlMesh::initBaseMeshFromMaya(MObject shapeNode)
 
 	fnMesh.getUVSetNames(uvSetNames);
 	int numUVSets = uvSetNames.length();
-	bool hasUVs = numUVSets > 0 && fnMesh.numUVs() > 0;
+	bool hasUVs = numUVSets > 0 && fnMesh.numUVs(uvSetNames[0]) > 0;
 
 	if (numUVSets > 1)
 	{
@@ -172,7 +172,8 @@ MStatus ControlMesh::initBaseMeshFromMaya(MObject shapeNode)
 	MItMeshPolygon itFace(shapeNode);
 
 	level->createBaseLevel(numVertices, itFace,
-		                   edgeSharpnessLUT.empty()? NULL : &edgeSharpnessLUT);
+		                   edgeSharpnessLUT.empty()? NULL : &edgeSharpnessLUT,
+						   hasUVs? &vertexUVs : NULL);
 
 	return MS::kSuccess;
 }

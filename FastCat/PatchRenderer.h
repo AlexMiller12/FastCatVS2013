@@ -53,9 +53,11 @@ public:
 	GLuint ibo;
 	GLuint ovbo; // handle to offsetValenceBuffers on GPU
 	GLuint nibo; // handle to neighbourIndexBuffers on GPU
+	GLuint uvBuffer;
 	std::vector<int> offsetValenceBuffer; // offsets into neighbourIdxBuffers
 	std::vector<int> neighbourIndexBuffer;
 	std::vector<unsigned> endPatchIndexBuffer;
+	std::vector<float> uvBuffer_cpu;
 
 	GLuint program;
 
@@ -99,10 +101,13 @@ class PartialPatchSharpCaseX
 public:
 	std::vector<std::vector<int> > indexBufferOffsetSizes;
 	std::vector<std::vector<int> > sharpnessBufferOffsets;
+	std::vector<std::vector<int> > uvBufferOffsets;
 	std::vector<GLuint> ibos;
 	std::vector<GLuint> sbos;
+	std::vector<GLuint> uvBuffers;
 	std::vector<std::vector<unsigned> > partialPatchIndexBuffers;
 	std::vector<std::vector<float> > sharpnessBuffers;
+	std::vector<std::vector<float> > uvBuffers_cpu;
 
 	std::vector<GLuint> programs; // one program for each subdomain
 
@@ -217,7 +222,9 @@ class PartialPatchNoSharpCaseX
 public:
 	std::vector<int> numIndices;
 	std::vector<GLuint> ibos;
+	std::vector<GLuint> uvBuffers;
 	std::vector<std::vector<unsigned> > partialPatchIndexBuffers;
+	std::vector<std::vector<float> > uvBuffers_cpu;
 
 	std::vector<GLuint> programs; // one program for each subdomain
 	
@@ -334,6 +341,8 @@ public:
 	std::vector<int> numIndices; // number of indices in each level
 	std::vector<GLuint> ibos; // GL index buffers for all levels
 	std::vector<std::vector<unsigned> > fullPatchIndexBuffers; // each level has one index buffer
+	std::vector<GLuint> uvBuffers;
+	std::vector<std::vector<float> > uvBuffers_cpu;
 
 	GLuint program;
 

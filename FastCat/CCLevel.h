@@ -79,7 +79,8 @@ private:
 
 	// faceVertexIndices store indices into vlist (not indices into shared vertex buffer)
 	Face *addFace(const std::vector<unsigned> &faceVertexIndices,
-		          const EdgeSharpnessLUT *edgeSharpnessLUT = NULL);
+		          const EdgeSharpnessLUT *edgeSharpnessLUT = NULL,
+				  const std::vector<float> *p_vertexUVs = NULL);
 
 	// Mark face to be subdivided
 	// Put face and its one-ring neighbor into subd_faces

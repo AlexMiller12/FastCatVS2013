@@ -1,6 +1,15 @@
 #version 450 core
 
 
+layout(std430, binding = 10) readonly buffer pps_tes_block0
+{
+	float g_uvBuffer[];
+};
+
+
+layout(location = 1) uniform int uvbOffset;
+
+
 layout(std140, binding = 0) uniform cbPerFrame
 {                                             // start_at    size    accum_size
 	mat4 g_mWorld;                            // 0           64      64
@@ -32,6 +41,7 @@ in TCS_PER_CP_OUT
 out TES_OUT
 {
 	vec3 normal;
+	vec2 texCoords;
 } tes_out;
 
 
@@ -163,11 +173,27 @@ void main()
 		bitangent += D[i] * BUCP[i];
 	}
 	
+	// Interpolate texture coordinates
+	vec2 vertexTexCoords[4] =
+	{
+		{g_uvBuffer[uvbOffset + gl_PrimitiveID * 8 + 6], g_uvBuffer[uvbOffset + gl_PrimitiveID * 8 + 7]},
+		{g_uvBuffer[uvbOffset + gl_PrimitiveID * 8    ], g_uvBuffer[uvbOffset + gl_PrimitiveID * 8 + 1]},
+		{g_uvBuffer[uvbOffset + gl_PrimitiveID * 8 + 4], g_uvBuffer[uvbOffset + gl_PrimitiveID * 8 + 5]},
+		{g_uvBuffer[uvbOffset + gl_PrimitiveID * 8 + 2], g_uvBuffer[uvbOffset + gl_PrimitiveID * 8 + 3]}
+	};
+	vec2 uTexCoords1 = (1.0 - UV.x) * vertexTexCoords[0] +
+					   UV.x * vertexTexCoords[1];
+	vec2 uTexCoords2 = (1.0 - UV.x) * vertexTexCoords[2] +
+					   UV.x * vertexTexCoords[3];
+	vec2 outTexCoords = (1.0 - UV.y) * uTexCoords1 +
+						UV.y * uTexCoords2;
+	
 	// OpenGL uses right-handed rule
 	vec3 normal = normalize(cross(tangent, bitangent));
 	
 	// for the normal, the inverse transpose of g_mWorld need to be used if
 	// the model is not uniformly scaled
 	tes_out.normal = vec3(g_mWorld * vec4(normal, 0.0));
+	tes_out.texCoords = outTexCoords;
 	gl_Position = g_mWorldViewProjection * vec4(localPos, 1.0);
 }

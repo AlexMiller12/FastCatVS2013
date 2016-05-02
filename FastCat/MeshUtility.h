@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <set>
+#include <list>
 
 class Edge;
 class Face;
@@ -126,6 +127,7 @@ class Face
 {
 public:
 	int valence = 0;
+	std::list<float> vertexUVs;
 	Edge *right = NULL; // Edge on the right side of the face
 	
 	bool isMarkedForSubdivision = false;
@@ -138,8 +140,32 @@ public:
 	bool hasTriangleHead();
 	void getPartialPatchInfo(int *p_numTriHeands, bool *p_connected) const;
 
-	inline void rotateCCW() { right = right->fPrev(); }
-	inline void rotateCW() { right = right->fNext(); }
+	inline void rotateCCW()
+	{
+		right = right->fPrev();
+		if (vertexUVs.size() > 0)
+		{
+			float v = vertexUVs.back();
+			vertexUVs.pop_back();
+			float u = vertexUVs.back();
+			vertexUVs.pop_back();
+			vertexUVs.push_front(v);
+			vertexUVs.push_front(u);
+		}
+	}
+	inline void rotateCW()
+	{
+		right = right->fNext();
+		if (vertexUVs.size() > 0)
+		{
+			float u = vertexUVs.front();
+			vertexUVs.pop_front();
+			float v = vertexUVs.front();
+			vertexUVs.pop_front();
+			vertexUVs.push_back(u);
+			vertexUVs.push_back(v);
+		}
+	}
 	
 	// Order is not important
 	void getVertices(std::set<Vertex *> &vs);
@@ -158,6 +184,8 @@ public:
 	// 4  5  6  7
 	// 0  1  2  3
 	void getOneRingIndices(int firstVertexOffset, unsigned *outIndices);
+
+	void getUVs(std::vector<float> &uvs) { uvs.assign(vertexUVs.begin(), vertexUVs.end()); }
 };
 
 #endif // MESH_UTILITY_H

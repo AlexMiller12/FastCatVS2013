@@ -323,18 +323,22 @@ void PartialPatchNoSharpCaseX::generateIndexBuffer(const std::vector<std::vector
 	numIndices.resize(numLevels, 0);
 	ibos.resize(numLevels, std::numeric_limits<GLuint>::max());
 	partialPatchIndexBuffers.resize(numLevels);
+	uvBuffers.resize(numLevels, std::numeric_limits<GLuint>::max());
+	uvBuffers_cpu.resize(numLevels);
 
 	for (int i = 0; i < numLevels; ++i)
 	{
 		int numPatches = patches[i].size();
 		numIndices[i] = numPatches * 16;
 		partialPatchIndexBuffers[i].resize(numIndices[i]);
+		uvBuffers_cpu[i].resize(numPatches * 8, 0.f);
 	}
 
 	for (int i = 0; i < numLevels; ++i)
 	{
 		int firstVertexOffset = cm->levels[i]->firstVertexOffset;
 		std::vector<unsigned> &ppib = partialPatchIndexBuffers[i];
+		std::vector<float> &ppuvb = uvBuffers_cpu[i];
 		const std::vector<Face *> &patchesLevel = patches[i];
 
 		for (int j = 0; j < patchesLevel.size(); ++j)
@@ -342,6 +346,13 @@ void PartialPatchNoSharpCaseX::generateIndexBuffer(const std::vector<std::vector
 			Face *f = patchesLevel[j];
 
 			f->getOneRingIndices(firstVertexOffset, &ppib[j * 16]);
+
+			if (f->vertexUVs.size() > 0)
+			{
+				std::vector<float> vertexUVs;
+				f->getUVs(vertexUVs);
+				memcpy(&ppuvb[j * 8], &vertexUVs[0], vertexUVs.size() * sizeof(float));
+			}
 		}
 
 		if (numIndices[i] > 0)
@@ -349,11 +360,18 @@ void PartialPatchNoSharpCaseX::generateIndexBuffer(const std::vector<std::vector
 			glGenBuffers(1, &ibos[i]);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibos[i]);
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices[i] * sizeof(unsigned), ppib.data(), GL_STATIC_DRAW);
+
+			glGenBuffers(1, &uvBuffers[i]);
+			glBindBuffer(GL_SHADER_STORAGE_BUFFER, uvBuffers[i]);
+			glBufferData(GL_SHADER_STORAGE_BUFFER, ppuvb.size() * sizeof(float), ppuvb.data(), GL_STATIC_DRAW);
 		}
 		ppib.clear();
+		ppuvb.clear();
 	}
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // unbind
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 	partialPatchIndexBuffers.clear();
+	uvBuffers_cpu.clear();
 }
 
 
@@ -366,6 +384,11 @@ PartialPatchNoSharpCaseX::~PartialPatchNoSharpCaseX()
 		if (numIndices[i] > 0)
 		{
 			glDeleteBuffers(1, &ibos[i]);
+		}
+
+		if (uvBuffers[i] != std::numeric_limits<GLuint>::max())
+		{
+			glDeleteBuffers(1, &uvBuffers[i]);
 		}
 	}
 
@@ -391,15 +414,23 @@ void PartialPatchSharpCaseX::generateIndexBuffer(const std::vector<std::vector<F
 	{
 		sharpnessBufferOffsets[i].resize(4, 0); // 1 offset for each rotation
 	}
+	uvBufferOffsets.resize(numLevels);
+	for (int i = 0; i < numLevels; ++i)
+	{
+		uvBufferOffsets[i].resize(4, 0);
+	}
 	ibos.resize(numLevels, std::numeric_limits<GLuint>::max());
 	sbos.resize(numLevels, std::numeric_limits<GLuint>::max());
+	uvBuffers.resize(numLevels, std::numeric_limits<GLuint>::max());
 	partialPatchIndexBuffers.resize(numLevels);
+	uvBuffers_cpu.resize(numLevels);
 	sharpnessBuffers.resize(numLevels);
 	for (int i = 0; i < numLevels; ++i)
 	{
 		int numPatches = patches[i].size();
 		partialPatchIndexBuffers[i].resize(16 * numPatches);
 		sharpnessBuffers[i].resize(numPatches); // each patch contain exactly one evaluable crease
+		uvBuffers_cpu[i].resize(numPatches * 8, 0.f);
 	}
 
 	// build CPU buffers
@@ -415,44 +446,59 @@ void PartialPatchSharpCaseX::generateIndexBuffer(const std::vector<std::vector<F
 		int firstVertexOffset = cm->levels[i]->firstVertexOffset;
 		std::vector<unsigned> &ppib = partialPatchIndexBuffers[i];
 		std::vector<float> &ppsb = sharpnessBuffers[i];
+		std::vector<float> &ppuvb = uvBuffers_cpu[i];
 		std::vector<int> &indexBufferOffsetSizesLevel = indexBufferOffsetSizes[i];
 		std::vector<int> &sharpnessBufferOffsetsLevel = sharpnessBufferOffsets[i];
+		std::vector<int> &uvBufferOffsetsLevel = uvBufferOffsets[i];
 
 		// temporary buffers for the indices and sharpnesses in each rotation
 		int numIndicesRot[4] = { 0 };
 		int numPatchesRot[4] = { 0 };
+		int numUVsRot[4] = { 0 };
 		std::vector<std::vector<unsigned> > ibsRot;
+		std::vector<std::vector<float> > uvsRot;
 		std::vector<std::vector<float> > sbsRot;
 		ibsRot.resize(4);
 		sbsRot.resize(4);
+		uvsRot.resize(4);
 		for (int j = 0; j < 4; ++j)
 		{
 			// the sizes are upper bounds
 			ibsRot[j].resize(ppib.size());
 			sbsRot[j].resize(patchesLevel.size());
+			uvsRot[j].resize(ppuvb.size());
 		}
 
 		for (int j = 0; j < patchesLevel.size(); ++j)
 		{
 			Face *f = patchesLevel[j];
-			int numRotatins = 0;
+			int numRotations = 0;
 
 			while (!f->right->isSharp())
 			{
 				f->rotateCCW();
-				++numRotatins;
+				++numRotations;
 			}
 
-			sbsRot[numRotatins][numPatchesRot[numRotatins]] = f->right->sharpness;
-			++numPatchesRot[numRotatins];
-			f->getOneRingIndices(firstVertexOffset, &ibsRot[numRotatins][numIndicesRot[numRotatins]]);
-			numIndicesRot[numRotatins] += 16;
+			sbsRot[numRotations][numPatchesRot[numRotations]] = f->right->sharpness;
+			++numPatchesRot[numRotations];
+			f->getOneRingIndices(firstVertexOffset, &ibsRot[numRotations][numIndicesRot[numRotations]]);
+			numIndicesRot[numRotations] += 16;
+
+			if (f->vertexUVs.size() > 0)
+			{
+				std::vector<float> vertexUVs;
+				f->getUVs(vertexUVs);
+				memcpy(&uvsRot[numRotations][numUVsRot[numRotations]], &vertexUVs[0], vertexUVs.size() * sizeof(float));
+				numUVsRot[numRotations] += vertexUVs.size();
+			}
 		}
 
 		// pack temporary buffers into level buffers
 		indexBufferOffsetSizesLevel[0] = 0;
 		indexBufferOffsetSizesLevel[1] = numIndicesRot[0];
 		sharpnessBufferOffsetsLevel[0] = 0;
+		uvBufferOffsetsLevel[0] = 0;
 		if (numIndicesRot[0] > 0)
 		{
 			memcpy(&ppib[0], &ibsRot[0][0], numIndicesRot[0] * sizeof(unsigned));
@@ -460,6 +506,10 @@ void PartialPatchSharpCaseX::generateIndexBuffer(const std::vector<std::vector<F
 		if (numPatchesRot[0] > 0)
 		{
 			memcpy(&ppsb[0], &sbsRot[0][0], numPatchesRot[0] * sizeof(float));
+		}
+		if (numUVsRot[0] > 0)
+		{
+			memcpy(&ppuvb[0], &uvsRot[0][0], numUVsRot[0] * sizeof(float));
 		}
 
 		for (int j = 1; j < 4; ++j)
@@ -472,10 +522,15 @@ void PartialPatchSharpCaseX::generateIndexBuffer(const std::vector<std::vector<F
 			int lastNumPatches = numPatchesRot[j - 1];
 			int curSbOffset = lastSbOffset + lastNumPatches;
 			int curNumPatches = numPatchesRot[j];
+			int lastUVbOffset = uvBufferOffsetsLevel[j - 1];
+			int lastNumUVs = numUVsRot[j - 1];
+			int curUVbOffset = lastUVbOffset + lastNumUVs;
+			int curNumUVs = numUVsRot[j];
 
 			indexBufferOffsetSizesLevel[2 * j] = curIbOffset;
 			indexBufferOffsetSizesLevel[2 * j + 1] = curNumIndices;
 			sharpnessBufferOffsetsLevel[j] = curSbOffset;
+			uvBufferOffsetsLevel[j] = curUVbOffset;
 			if (curNumIndices > 0)
 			{
 				memcpy(&ppib[curIbOffset], &ibsRot[j][0], curNumIndices * sizeof(unsigned));
@@ -483,6 +538,10 @@ void PartialPatchSharpCaseX::generateIndexBuffer(const std::vector<std::vector<F
 			if (curNumPatches > 0)
 			{
 				memcpy(&ppsb[curSbOffset], &sbsRot[j][0], curNumPatches * sizeof(float));
+			}
+			if (curNumUVs > 0)
+			{
+				memcpy(&ppuvb[curUVbOffset], &uvsRot[j][0], curNumUVs * sizeof(float));
 			}
 		}
 
@@ -496,14 +555,20 @@ void PartialPatchSharpCaseX::generateIndexBuffer(const std::vector<std::vector<F
 			glGenBuffers(1, &sbos[i]);
 			glBindBuffer(GL_SHADER_STORAGE_BUFFER, sbos[i]);
 			glBufferData(GL_SHADER_STORAGE_BUFFER, ppsb.size() * sizeof(float), ppsb.data(), GL_STATIC_DRAW);
+
+			glGenBuffers(1, &uvBuffers[i]);
+			glBindBuffer(GL_SHADER_STORAGE_BUFFER, uvBuffers[i]);
+			glBufferData(GL_SHADER_STORAGE_BUFFER, ppuvb.size() * sizeof(float), ppuvb.data(), GL_STATIC_DRAW);
 		}
 		ppib.clear();
 		ppsb.clear();
+		ppuvb.clear();
 	}
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // unbind
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 	partialPatchIndexBuffers.clear();
 	sharpnessBuffers.clear();
+	uvBuffers_cpu.clear();
 }
 
 
@@ -517,6 +582,10 @@ PartialPatchSharpCaseX::~PartialPatchSharpCaseX()
 		{
 			glDeleteBuffers(1, &ibos[i]);
 			glDeleteBuffers(1, &sbos[i]);
+		}
+		if (uvBuffers[i] != std::numeric_limits<GLuint>::max())
+		{
+			glDeleteBuffers(1, &uvBuffers[i]);
 		}
 	}
 
@@ -551,6 +620,7 @@ void PartialPatchNoSharpRenderer::renderLevel(int level, std::function<void(cons
 		if (pc->numIndices[level] > 0)
 		{
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pc->ibos[level]);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, pc->uvBuffers[level]);
 
 			std::vector<GLuint> &programs = pc->programs;
 			for (int j = 0; j < programs.size(); ++j)
@@ -628,6 +698,7 @@ void PartialPatchSharpRenderer::renderLevel(int level, std::function<void(const 
 		{
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pc->ibos[level]);
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, pc->sbos[level]);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, pc->uvBuffers[level]);
 
 			//setDrawColor(ppDebugColorTable[i]); // Debug
 
@@ -641,11 +712,13 @@ void PartialPatchSharpRenderer::renderLevel(int level, std::function<void(const 
 					int ibOffset = pc->indexBufferOffsetSizes[level][2 * k];
 					int numIndices = pc->indexBufferOffsetSizes[level][2 * k + 1];
 					int sbOffset = pc->sharpnessBufferOffsets[level][k];
+					int uvbOffset = pc->uvBufferOffsets[level][k];
 
 					if (numIndices > 0)
 					{
 						glUniformSubroutinesuiv(GL_TESS_EVALUATION_SHADER, 1, &k);
 						glUniform1i(0, sbOffset);
+						glUniform1i(1, uvbOffset);
 						glDrawElements(GL_PATCHES, numIndices, GL_UNSIGNED_INT, (const void *)(ibOffset * sizeof(unsigned)));
 					}
 				}
@@ -787,6 +860,11 @@ EndPatchRenderer::~EndPatchRenderer()
 		{
 			glDeleteBuffers(1, &nibo);
 		}
+
+		if (uvBuffer != std::numeric_limits<GLuint>::max())
+		{
+			glDeleteBuffers(1, &uvBuffer);
+		}
 	}
 
 	if (isGLSetup)
@@ -802,7 +880,7 @@ void EndPatchRenderer::renderLevel(int level, std::function<void(const glm::vec4
 	if (level == controlMesh->maxSubdivisionLevel && numIndices > 0)
 	{
 		prerenderSetup(level, setDrawColor);
-		glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_PATCHES, numIndices, GL_UNSIGNED_INT, 0);
 	}
 }
 
@@ -820,6 +898,9 @@ void EndPatchRenderer::prerenderSetup(int level, std::function<void (const glm::
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, controlMesh->vbo);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ovbo);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, nibo);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, uvBuffer);
+	glPatchParameteri(GL_PATCH_VERTICES, 3);
+
 }
 
 
@@ -838,9 +919,13 @@ void EndPatchRenderer::generateIndexBuffer()
 	numIndices = numEndPatches * 6; // 2 triangles
 	endPatchIndexBuffer.resize(numIndices);
 
+	uvBuffer = std::numeric_limits<GLuint>::max();
+	uvBuffer_cpu.resize(numIndices * 2, 0.f);
+
 	const std::vector<Face *> &endPatches = level->endPatches;
 	int firstVertexOffset = level->firstVertexOffset;
 	std::vector<unsigned> &ib = endPatchIndexBuffer;
+	std::vector<float> &uvb = uvBuffer_cpu;
 
 	auto updateIndexBuffer = [firstVertexOffset](const std::vector<Vertex *> &vs, unsigned *ib)
 	{
@@ -852,6 +937,16 @@ void EndPatchRenderer::generateIndexBuffer()
 		ib[5] = firstVertexOffset + vs[0]->idx;
 	};
 
+	auto updateUVBuffer = [](const std::vector<float> &vertexUVs, float *uvb)
+	{
+		uvb[0] = vertexUVs[0]; uvb[1] = vertexUVs[1];
+		uvb[2] = vertexUVs[2]; uvb[3] = vertexUVs[3];
+		uvb[4] = vertexUVs[4]; uvb[5] = vertexUVs[5];
+		uvb[6] = vertexUVs[4]; uvb[7] = vertexUVs[5];
+		uvb[8] = vertexUVs[6]; uvb[9] = vertexUVs[7];
+		uvb[10] = vertexUVs[0]; uvb[11] = vertexUVs[1];
+	};
+
 	// Fill the index buffer for this level
 	for (int j = 0; j < endPatches.size(); ++j)
 	{
@@ -860,6 +955,13 @@ void EndPatchRenderer::generateIndexBuffer()
 
 		f->getVertices(fvs);
 		updateIndexBuffer(fvs, &ib[j * 6]);
+
+		if (f->vertexUVs.size() > 0)
+		{
+			std::vector<float> vertexUVs;
+			f->getUVs(vertexUVs);
+			updateUVBuffer(vertexUVs, &uvb[j * 12]);
+		}
 	}
 
 	// Create index buffer on GPU
@@ -868,9 +970,15 @@ void EndPatchRenderer::generateIndexBuffer()
 		glGenBuffers(1, &ibo);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(unsigned), ib.data(), GL_STATIC_DRAW);
+
+		glGenBuffers(1, &uvBuffer);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, uvBuffer);
+		glBufferData(GL_SHADER_STORAGE_BUFFER, uvb.size() * sizeof(float), uvb.data(), GL_STATIC_DRAW);
 	}
 	ib.clear();
+	uvb.clear();
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // unbind
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
 	// Fill the offsetValenceBuffer and neighbourIndexBuffer for this level
 	std::vector<Vertex> &vlist = level->vlist;
@@ -939,15 +1047,23 @@ void EndPatchRenderer::createShaderProgram()
 	}
 
 	std::string vsFileName(SHADER_DIR);
+	std::string tcsFileName(SHADER_DIR);
+	std::string tesFileName(SHADER_DIR);
 	std::string fsFileName(SHADER_DIR);
 	vsFileName += "/endpatch_vs.glsl";
+	tcsFileName += "/endpatch_tcs.glsl";
+	tesFileName += "/endpatch_tes.glsl";
 	fsFileName += "/commonpatch_fs.glsl";
 	std::vector<GLenum> types;
 	std::vector<const char *> fileNames;
 
 	types.push_back(GL_VERTEX_SHADER);
+	types.push_back(GL_TESS_CONTROL_SHADER);
+	types.push_back(GL_TESS_EVALUATION_SHADER);
 	types.push_back(GL_FRAGMENT_SHADER);
 	fileNames.push_back(vsFileName.c_str());
+	fileNames.push_back(tcsFileName.c_str());
+	fileNames.push_back(tesFileName.c_str());
 	fileNames.push_back(fsFileName.c_str());
 
 	ShaderHelper::createProgramWithShaders(types, fileNames, program);
@@ -964,6 +1080,11 @@ FullPatchRenderer::~FullPatchRenderer()
 			if (ibos[i] != std::numeric_limits<GLuint>::max())
 			{
 				glDeleteBuffers(1, &ibos[i]);
+			}
+
+			if (uvBuffers[i] != std::numeric_limits<GLuint>::max())
+			{
+				glDeleteBuffers(1, &uvBuffers[i]);
 			}
 		}
 	}
@@ -1014,6 +1135,16 @@ void FullPatchSharpRenderer::generateIndexBuffer()
 	sbos.resize(numLevels, std::numeric_limits<GLuint>::max());
 	fullPatchIndexBuffers.resize(numLevels);
 	sharpnessBuffers.resize(numLevels);
+	uvBuffers_cpu.resize(numLevels);
+	uvBuffers.resize(numLevels, std::numeric_limits<GLuint>::max());
+	for (int i = 0; i < numLevels; ++i)
+	{
+		std::shared_ptr<CCLevel> level = controlMesh->levels[i];
+		int numFullPatchesNoSharp = level->fullPatchesNoSharp.size();
+		numIndices[i] = numFullPatchesNoSharp * 16;
+		fullPatchIndexBuffers[i].resize(numIndices[i]);
+		uvBuffers_cpu[i].resize(numFullPatchesNoSharp * 8, 0.f);
+	}
 
 	for (int i = 0; i < numLevels; ++i)
 	{
@@ -1032,6 +1163,7 @@ void FullPatchSharpRenderer::generateIndexBuffer()
 		std::vector<unsigned> &ib = fullPatchIndexBuffers[i];
 		std::vector<float> &sb = sharpnessBuffers[i];
 		int numSharpFullPatches = fullPatchesSharp.size();
+		std::vector<float> &uvb = uvBuffers_cpu[i];
 
 		// Fill the index buffer for this level
 		for (int j = 0; j < numSharpFullPatches; ++j)
@@ -1045,6 +1177,13 @@ void FullPatchSharpRenderer::generateIndexBuffer()
 
 			sb[j] = f->right->sharpness;
 			f->getOneRingIndices(firstVertexOffset, &ib[j * 16]);
+
+			if (f->vertexUVs.size() > 0)
+			{
+				std::vector<float> faceUVs;
+				f->getUVs(faceUVs);
+				memcpy(&uvb[j * 8], &faceUVs[0], faceUVs.size() * sizeof(float));
+			}
 		}
 
 		// Create index buffer on GPU
@@ -1057,14 +1196,20 @@ void FullPatchSharpRenderer::generateIndexBuffer()
 			glGenBuffers(1, &sbos[i]);
 			glBindBuffer(GL_SHADER_STORAGE_BUFFER, sbos[i]);
 			glBufferData(GL_SHADER_STORAGE_BUFFER, numSharpFullPatches * sizeof(float), sb.data(), GL_STATIC_DRAW);
+
+			glGenBuffers(1, &uvBuffers[i]);
+			glBindBuffer(GL_SHADER_STORAGE_BUFFER, uvBuffers[i]);
+			glBufferData(GL_SHADER_STORAGE_BUFFER, uvb.size() * sizeof(float), uvb.data(), GL_STATIC_DRAW);
 		}
 		ib.clear();
 		sb.clear();
+		uvb.clear();
 	}
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // unbind
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 	fullPatchIndexBuffers.clear();
 	sharpnessBuffers.clear();
+	uvBuffers_cpu.clear();
 
 	indexBufferGenerated = true;
 }
@@ -1109,6 +1254,7 @@ void FullPatchSharpRenderer::prerenderSetup(int level, std::function<void (const
 	glUseProgram(program);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibos[level]);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, sbos[level]);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, uvBuffers[level]);
 	glPolygonMode(GL_FRONT_AND_BACK, g_shadingMode);
 	glPatchParameteri(GL_PATCH_VERTICES, 16);
 }
@@ -1155,6 +1301,7 @@ void FullPatchNoSharpRenderer::prerenderSetup(int level, std::function<void (con
 
 	glUseProgram(program);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibos[level]);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, uvBuffers[level]);
 	glPolygonMode(GL_FRONT_AND_BACK, g_shadingMode);
 	glPatchParameteri(GL_PATCH_VERTICES, 16);
 }
@@ -1172,12 +1319,15 @@ void FullPatchNoSharpRenderer::generateIndexBuffer()
 	numIndices.resize(numLevels, 0);
 	ibos.resize(numLevels, std::numeric_limits<GLuint>::max());
 	fullPatchIndexBuffers.resize(numLevels);
+	uvBuffers_cpu.resize(numLevels);
+	uvBuffers.resize(numLevels, std::numeric_limits<GLuint>::max());
 	for (int i = 0; i < numLevels; ++i)
 	{
 		std::shared_ptr<CCLevel> level = controlMesh->levels[i];
 		int numFullPatchesNoSharp = level->fullPatchesNoSharp.size();
 		numIndices[i] = numFullPatchesNoSharp * 16;
 		fullPatchIndexBuffers[i].resize(numIndices[i]);
+		uvBuffers_cpu[i].resize(numFullPatchesNoSharp * 8, 0.f);
 	}
 
 	for (int i = 0; i < numLevels; ++i)
@@ -1186,12 +1336,20 @@ void FullPatchNoSharpRenderer::generateIndexBuffer()
 		const std::vector<Face *> &fullPatchesNoSharp = level->fullPatchesNoSharp;
 		int firstVertexOffset = level->firstVertexOffset;
 		std::vector<unsigned> &ib = fullPatchIndexBuffers[i];
+		std::vector<float> &uvb = uvBuffers_cpu[i];
 
 		// Fill the index buffer for this level
 		for (int j = 0; j < fullPatchesNoSharp.size(); ++j)
 		{
 			Face *f = fullPatchesNoSharp[j];
 			f->getOneRingIndices(firstVertexOffset, &ib[j * 16]);
+
+			if (f->vertexUVs.size() > 0)
+			{
+				std::vector<float> faceUVs;
+				f->getUVs(faceUVs);
+				memcpy(&uvb[j * 8], &faceUVs[0], faceUVs.size() * sizeof(float));
+			}
 		}
 
 		// Create index buffer on GPU
@@ -1214,11 +1372,18 @@ void FullPatchNoSharpRenderer::generateIndexBuffer()
 			glGenBuffers(1, &ibos[i]);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibos[i]);
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices[i] * sizeof(unsigned), ib.data(), GL_STATIC_DRAW);
+
+			glGenBuffers(1, &uvBuffers[i]);
+			glBindBuffer(GL_SHADER_STORAGE_BUFFER, uvBuffers[i]);
+			glBufferData(GL_SHADER_STORAGE_BUFFER, uvb.size() * sizeof(float), uvb.data(), GL_STATIC_DRAW);
 		}
 		ib.clear();
+		uvb.clear();
 	}
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // unbind
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 	fullPatchIndexBuffers.clear();
+	uvBuffers_cpu.clear();
 
 	indexBufferGenerated = true;
 }

@@ -49,7 +49,7 @@ layout(std140, binding = 1) uniform cbPerLevel
 
 layout(location = 0) in vec4 position;
 
-out TES_OUT
+out VS_OUT
 {
 	vec3 normal;
 } vs_out;

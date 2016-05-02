@@ -1,6 +1,7 @@
 #include "CCLevel.h"
 #include "ShaderHelper.h"
 #include <unordered_map>
+#include <maya/MFloatArray.h>
 
 
 void CCLevel::classifyPatches()
@@ -239,9 +240,37 @@ void CCLevel::addSubFaces(Face *parent, int edgePointStart, int vertexPointStart
 {
 	std::vector<Vertex *> vps;
 	std::vector<Edge *> eps;
+	std::vector<float> parentUVs;
+	bool hasUVs = parent->vertexUVs.size() > 0;
 
 	parent->getEdges(eps);
 	parent->getVertices(vps);
+	if (hasUVs)
+	{
+		parent->getUVs(parentUVs);
+		
+		float fpU = 0.f, fpV = 0.f;
+		int numVertices = vps.size();
+		for (int i = 0; i < numVertices; ++i)
+		{
+			fpU += parentUVs[i * 2];
+			fpV += parentUVs[i * 2 + 1];
+		}
+		fpU /= static_cast<float>(numVertices);
+		fpV /= static_cast<float>(numVertices);
+		parentUVs.push_back(fpU);
+		parentUVs.push_back(fpV);
+
+		int numEdges = eps.size();
+		for (int i = 0; i < numEdges; ++i)
+		{
+			float epU = 0.f, epV = 0.f;
+			epU = (parentUVs[2 * i] + parentUVs[2 * ((i + 1) % numEdges)]) / 2.f;
+			epV = (parentUVs[2 * i + 1] + parentUVs[2 * ((i + 1) % numEdges) + 1]) / 2.f;
+			parentUVs.push_back(epU);
+			parentUVs.push_back(epV);
+		}
+	}
 	assert(eps.size() == vps.size() && eps.size() == parent->valence);
 
 	int numSubFaces = parent->valence;
@@ -259,7 +288,33 @@ void CCLevel::addSubFaces(Face *parent, int edgePointStart, int vertexPointStart
 		indices.push_back(epIdx2);
 		indices.push_back(fpIdx);
 
-		Face *newFace = addFace(indices);
+		std::vector<float> childUVs;
+		if (hasUVs)
+		{
+			int lastIdx = (i + numSubFaces - 1) % numSubFaces;
+			int ep1UIdx = 2 * (numSubFaces + 1 + lastIdx);
+			int ep1VIdx = 2 * (numSubFaces + 1 + lastIdx) + 1;
+			float ep1U = parentUVs[ep1UIdx];
+			float ep1V = parentUVs[ep1VIdx];
+
+			int ep2UIdx = 2 * (numSubFaces + 1 + i);
+			int ep2VIdx = 2 * (numSubFaces + 1 + i) + 1;
+			float ep2U = parentUVs[ep2UIdx];
+			float ep2V = parentUVs[ep2VIdx];
+
+			float fpU = parentUVs[2 * (numSubFaces + 1)];
+			float fpV = parentUVs[2 * (numSubFaces + 1) + 1];
+
+			float vpU = parentUVs[2 * i];
+			float vpV = parentUVs[2 * i + 1];
+
+			childUVs.push_back(ep1U); childUVs.push_back(ep1V);
+			childUVs.push_back(vpU); childUVs.push_back(vpV);
+			childUVs.push_back(ep2U); childUVs.push_back(ep2V);
+			childUVs.push_back(fpU); childUVs.push_back(fpV);
+		}
+
+		Face *newFace = addFace(indices, NULL, &childUVs);
 
 		// Update sharpness
 		if (parent->isMarkedForSubdivision)
@@ -645,16 +700,23 @@ void CCLevel::createBaseLevel(int numVertices, MItMeshPolygon &itFace,
 	{
 		int nv = itFace.polygonVertexCount();
 		std::vector<unsigned> indices; // in CCW order
-		std::vector<unsigned> uvIndices; // one for each vertex
-		int uvIndex;
+		std::vector<float> faceVertexUVs;
+		int uvIdx;
 
 		for (int i = 0; i < nv; ++i)
 		{
 			indices.push_back(itFace.vertexIndex(i));
+
+			if (p_vertexUVs)
+			{
+				itFace.getUVIndex(i, uvIdx);
+				faceVertexUVs.push_back((*p_vertexUVs)[2 * uvIdx]);
+				faceVertexUVs.push_back((*p_vertexUVs)[2 * uvIdx + 1]);
+			}
 		}
-		
+
 		// Create face and corresponding (half) edges
-		addFace(indices, edgeSharpnessLUT);
+		addFace(indices, edgeSharpnessLUT, p_vertexUVs? &faceVertexUVs : NULL);
 
 		itFace.next();
 	}
@@ -684,7 +746,8 @@ void CCLevel::createBaseLevel(int numVertices, MItMeshPolygon &itFace,
 
 
 Face *CCLevel::addFace(const std::vector<unsigned> &faceVertexIndices,
-	                   const EdgeSharpnessLUT *edgeSharpnessLUT)
+	                   const EdgeSharpnessLUT *edgeSharpnessLUT,
+					   const std::vector<float> *p_vertexUVs)
 {
 	int startIdx = elist.size();
 	int numEdges = faceVertexIndices.size();
@@ -692,6 +755,15 @@ Face *CCLevel::addFace(const std::vector<unsigned> &faceVertexIndices,
 	elist.resize(startIdx + numEdges);
 	Face newFace;
 	newFace.valence = numEdges;
+	if (p_vertexUVs)
+	{
+		for (int i = 2; i < p_vertexUVs->size(); ++i)
+		{
+			newFace.vertexUVs.push_back((*p_vertexUVs)[i]);
+		}
+		newFace.vertexUVs.push_back((*p_vertexUVs)[0]);
+		newFace.vertexUVs.push_back((*p_vertexUVs)[1]);
+	}
 	newFace.right = &elist[startIdx + 1];
 	flist.push_back(newFace);
 	Face *f = &flist.back();
