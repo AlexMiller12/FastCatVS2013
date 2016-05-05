@@ -626,6 +626,14 @@ void PartialPatchNoSharpRenderer::renderLevel(int level, std::function<void(cons
 			for (int j = 0; j < programs.size(); ++j)
 			{
 				glUseProgram(programs[j]);
+				if (controlMesh->hasTexture)
+				{
+					glBindTextureUnit(4, controlMesh->diffuseMap);
+				}
+				if (controlMesh->hasDisplacementMap)
+				{
+					glBindTextureUnit(5, controlMesh->displacementMap);
+				}
 				glDrawElements(GL_PATCHES, pc->numIndices[level], GL_UNSIGNED_INT, 0);
 			}
 		}
@@ -706,6 +714,14 @@ void PartialPatchSharpRenderer::renderLevel(int level, std::function<void(const 
 			for (int j = 0; j < programs.size(); ++j)
 			{
 				glUseProgram(programs[j]);
+				if (controlMesh->hasTexture)
+				{
+					glBindTextureUnit(4, controlMesh->diffuseMap);
+				}
+				if (controlMesh->hasDisplacementMap)
+				{
+					glBindTextureUnit(5, controlMesh->displacementMap);
+				}
 
 				for (unsigned k = 0; k < 4; ++k)
 				{
@@ -899,6 +915,14 @@ void EndPatchRenderer::prerenderSetup(int level, std::function<void (const glm::
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ovbo);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, nibo);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, uvBuffer);
+	if (controlMesh->hasTexture)
+	{
+		glBindTextureUnit(4, controlMesh->diffuseMap);
+	}
+	if (controlMesh->hasDisplacementMap)
+	{
+		glBindTextureUnit(5, controlMesh->displacementMap);
+	}
 	glPatchParameteri(GL_PATCH_VERTICES, 3);
 
 }
@@ -1252,6 +1276,14 @@ void FullPatchSharpRenderer::prerenderSetup(int level, std::function<void (const
 	setDrawColor(glm::vec4(1.f, .5f, 1.f, 1.f)); // Debug
 
 	glUseProgram(program);
+	if (controlMesh->hasTexture)
+	{
+		glBindTextureUnit(4, controlMesh->diffuseMap);
+	}
+	if (controlMesh->hasDisplacementMap)
+	{
+		glBindTextureUnit(5, controlMesh->displacementMap);
+	}
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibos[level]);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, sbos[level]);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, uvBuffers[level]);
@@ -1300,6 +1332,14 @@ void FullPatchNoSharpRenderer::prerenderSetup(int level, std::function<void (con
 	setDrawColor(glm::vec4(1.f, 1.f, 1.f, 1.f)); // Debug
 
 	glUseProgram(program);
+	if (controlMesh->hasTexture)
+	{
+		glBindTextureUnit(4, controlMesh->diffuseMap);
+	}
+	if (controlMesh->hasDisplacementMap)
+	{
+		glBindTextureUnit(5, controlMesh->displacementMap);
+	}
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibos[level]);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, uvBuffers[level]);
 	glPolygonMode(GL_FRONT_AND_BACK, g_shadingMode);

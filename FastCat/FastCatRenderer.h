@@ -73,7 +73,7 @@ public:
 
 	// @lightDir should point to the light
 	// @znzf is the distance between near and far clips
-	virtual void setPerFrameUniformBlock(const glm::vec3 &lightDir, float znzf);
+	virtual void setPerFrameUniformBlock(const glm::vec3 &lightDir, float znzf, float dispIntensity);
 
 	virtual void setPerLevelUniformBlock(float tessfactor, float tessfactorNextLevel, float maxTessfactor,
 		int level, int firstVertexOffset, const glm::vec4 &color);

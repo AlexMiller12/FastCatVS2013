@@ -10,7 +10,10 @@ layout(std140, binding = 0) uniform cbPerFrame
 
 	vec3 g_vLightDir;                         // 256         16      272
     float g_zfzn;                             // 272         4       276
+	float g_dispIntensity;					  // 276	     4       280
 };
+
+layout (binding = 5) uniform sampler2D dispSampler;
 
 
 layout (quads, fractional_odd_spacing, ccw) in;
@@ -113,6 +116,14 @@ void main()
 	
 	// OpenGL uses right-handed rule
 	vec3 normal = normalize(cross(tangent, bitangent));
+	
+	// Displace along normal direction
+	if (g_dispIntensity > 1e-7)
+	{
+		vec4 dispAmount = texture(dispSampler, outTexCoords);
+		float scaledAmount = (dispAmount.r - 0.5) * 2.0;
+		localPos.xyz += normal * g_dispIntensity * scaledAmount;
+	}
 	
 	// for the normal, the inverse transpose of g_mWorld need to be used if
 	// the model is not uniformly scaled

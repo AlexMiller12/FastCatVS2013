@@ -2,6 +2,8 @@
 #define CONTROL_MESH_H
 
 #include <memory>
+#include <maya/MDagPath.h>
+#include <maya/MImage.h>
 
 #include "CCLevel.h"
 
@@ -19,13 +21,23 @@ public:
 	GLuint vbo;
 	GLuint fpProgram, epProgram, vpProgram;
 
-	ControlMesh() : maxSubdivisionLevel(6), isGLSetup(false), levelsGenerated(false), debugBuffersGenerated(false) {}
+	// Textures
+	bool hasDisplacementMap, hasTexture;
+	MImage dispMap, texMap;
+	GLuint diffuseMap, displacementMap;
+
+	ControlMesh() :
+		maxSubdivisionLevel(6), isGLSetup(false), levelsGenerated(false), debugBuffersGenerated(false),
+		hasDisplacementMap(false), hasTexture(false), diffuseMap(std::numeric_limits<GLuint>::max()),
+		displacementMap(std::numeric_limits<GLuint>::max()) {}
 	virtual ~ControlMesh();
 
-	MStatus initBaseMeshFromMaya(MObject shapeNode);
+	MStatus initBaseMeshFromMaya(MDagPath meshDagPath);
 
 	void adaptiveCCAllLevels();
 
+	// Need to do it separately because there is no context at the time initBaseMeshFromMaya is called
+	void generateGLTextures();
 
 	// For debugging purpose
 	bool debugBuffersGenerated;

@@ -23,6 +23,7 @@ void FastCatRenderer::changeControlMesh(float btf, std::shared_ptr<ControlMesh> 
 {
 	baseTessFactor = btf;
 	controlMesh = cm;
+	cm->generateGLTextures();
 	meshSubdivided = false;
 	g_worldMatrix = glm::mat4(1.f);
 
@@ -48,6 +49,7 @@ FastCatRenderer::FastCatRenderer(float btf, std::shared_ptr<ControlMesh> cm, std
 
 	createWindow();
 	init();
+	cm->generateGLTextures();
 	isReady = true;
 
 	// Initialize global variables
@@ -222,8 +224,14 @@ void FastCatRenderer::createWindow()
 	{
 		return;
 	}
+
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //We don't want the old OpenGL 
+
 	//Create a window and create its OpenGL context  
-	window = glfwCreateWindow( WINDOW_WIDTH, WINDOW_HEIGHT, "Test Window", NULL, NULL );
+	window = glfwCreateWindow( WINDOW_WIDTH, WINDOW_HEIGHT, "Preview Window", NULL, NULL );
 	//If the window couldn't be created  
 	if( ! window )
 	{
@@ -272,8 +280,8 @@ void FastCatRenderer::init()
 	fullPatchNoSharpRenderer->createShaderProgram();
 	fullPatchSharpRenderer->createShaderProgram();
 	partialPatchNoSharpRenderer->createShaderProgram();
-	partialPatchSharpRenderer->createShaderProgram();
 	endPatchRenderer->createShaderProgram();
+	partialPatchSharpRenderer->createShaderProgram();
 #endif
 	
 	glGenVertexArrays( 1, &vao );
@@ -354,8 +362,8 @@ void FastCatRenderer::testPass()
 		fullPatchNoSharpRenderer->generateIndexBuffer();
 		fullPatchSharpRenderer->generateIndexBuffer();
 		partialPatchNoSharpRenderer->generateIndexBuffer();
-		partialPatchSharpRenderer->generateIndexBuffer();
 		endPatchRenderer->generateIndexBuffer();
+		partialPatchSharpRenderer->generateIndexBuffer();
 #endif
 
 		glEnable(GL_DEPTH_TEST); // enable depth-testing
@@ -386,7 +394,8 @@ void FastCatRenderer::testPass()
 	glBindBuffer(GL_ARRAY_BUFFER, controlMesh->vbo);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
 
-	setPerFrameUniformBlock(glm::vec3(1.f, 1.f, 1.f), camera->farClip - camera->nearClip);
+	setPerFrameUniformBlock(glm::vec3(1.f, 1.f, 1.f), camera->farClip - camera->nearClip, .0f);
+	//setPerFrameUniformBlock(glm::vec3(1.f, 1.f, 1.f), .1f, .1f);
 
 	int numLevels = controlMesh->levels.size();
 	float tessFactor = fmax(1.0f, baseTessFactor);
@@ -408,8 +417,8 @@ void FastCatRenderer::testPass()
 		fullPatchNoSharpRenderer->renderLevel(i, setDrawColor);
 		fullPatchSharpRenderer->renderLevel(i, setDrawColor);
 		partialPatchNoSharpRenderer->renderLevel(i, setDrawColor);
-		partialPatchSharpRenderer->renderLevel(i, setDrawColor);
 		endPatchRenderer->renderLevel(i, setDrawColor);
+		partialPatchSharpRenderer->renderLevel(i, setDrawColor);
 
 		tessFactor = fmax(1.0f, tessFactor / 2.0f);
 		tessFactorNextLevel = fmax(1.0f, tessFactor / 2.0f);
@@ -420,7 +429,7 @@ void FastCatRenderer::testPass()
 }
 
 
-void FastCatRenderer::setPerFrameUniformBlock(const glm::vec3 &lightDir, float znzf)
+void FastCatRenderer::setPerFrameUniformBlock(const glm::vec3 &lightDir, float znzf, float dispIntensity)
 {
 	if (!perFrameBufferGenerated)
 	{
@@ -438,7 +447,8 @@ void FastCatRenderer::setPerFrameUniformBlock(const glm::vec3 &lightDir, float z
 	memcpy(buff + 32 * sizeof(float), glm::value_ptr(camera->proj), 16 * sizeof(float));
 	memcpy(buff + 48 * sizeof(float), glm::value_ptr(mvp), 16 * sizeof(float));
 	memcpy(buff + 64 * sizeof(float), glm::value_ptr(lightDir), 3 * sizeof(float));
-	*((float *)(buff + 68 * sizeof(float))) = znzf;
+	*((float *)(buff + 67 * sizeof(float))) = znzf;
+	*((float *)(buff + 68 * sizeof(float))) = dispIntensity;
 
 	glBindBuffer(GL_UNIFORM_BUFFER, perFrameBufferName);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, 276, buff);

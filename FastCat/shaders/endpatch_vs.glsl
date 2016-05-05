@@ -34,6 +34,7 @@ layout(std140, binding = 0) uniform cbPerFrame
 
 	vec3 g_vLightDir;                         // 256         16      272
     float g_zfzn;                             // 272         4       276
+	float g_dispIntensity;					  // 276         4       280
 };
 
 layout(std140, binding = 1) uniform cbPerLevel
@@ -178,9 +179,9 @@ void main()
 		nrm = normalize(cross(tangent, bitangent));
 	}
 	
-	gl_Position = g_mWorldViewProjection * vec4(out_pos, 1.0);
+	gl_Position = vec4(out_pos, 1.0);
 	
 	// for the normal, the inverse transpose of g_mWorld need to be used if
 	// the model is not uniformly scaled
-	vs_out.normal = vec3(g_mWorld * vec4(nrm, 0.0));
+	vs_out.normal = nrm;
 }

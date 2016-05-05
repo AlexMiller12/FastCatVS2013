@@ -16,7 +16,10 @@ layout(std140, binding = 0) uniform cbPerFrame
 
 	vec3 g_vLightDir;                         // 256         16      272
     float g_zfzn;                             // 272         4       276
+	float g_dispIntensity;					  // 276         4       280
 };
+
+layout (binding = 5) uniform sampler2D dispSampler;
 
 
 layout (triangles, fractional_odd_spacing, ccw) in;
@@ -52,4 +55,16 @@ void main()
 	tes_out.texCoords = gl_TessCoord.x * vertexTexCoords[0] +
 						gl_TessCoord.y * vertexTexCoords[1] +
 						gl_TessCoord.z * vertexTexCoords[2];
+						
+	// Displacement
+	if (g_dispIntensity > 1e-7)
+	{
+		vec4 dispAmount = texture(dispSampler, tes_out.texCoords);
+		float scaledAmount = (dispAmount.r - 0.5) * 2.0;
+		gl_Position.xyz += tes_out.normal * g_dispIntensity * scaledAmount;
+	}
+	
+	// Transform into world space
+	gl_Position = g_mWorldViewProjection * gl_Position;
+	tes_out.normal = vec3(g_mWorld * vec4(tes_out.normal, 0.0));
 }

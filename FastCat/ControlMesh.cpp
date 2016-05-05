@@ -7,6 +7,11 @@
 #include <maya/MDoubleArray.h>
 #include <maya/MFloatArray.h>
 #include <maya/MStringArray.h>
+#include <maya/MObjectArray.h>
+#include <maya/MFnDependencyNode.h>
+#include <maya/MPlugArray.h>
+#include <maya/MPlug.h>
+#include <maya/MImage.h>
 
 
 ControlMesh::~ControlMesh()
@@ -17,6 +22,16 @@ ControlMesh::~ControlMesh()
 		ShaderHelper::deleteProgram(fpProgram);
 		ShaderHelper::deleteProgram(epProgram);
 		ShaderHelper::deleteProgram(vpProgram);
+	}
+
+	if (diffuseMap != std::numeric_limits<GLuint>::max())
+	{
+		glDeleteTextures(1, &diffuseMap);
+	}
+
+	if (displacementMap != std::numeric_limits<GLuint>::max())
+	{
+		glDeleteTextures(1, &displacementMap);
 	}
 }
 
@@ -103,9 +118,10 @@ void ControlMesh::adaptiveCCAllLevels()
 }
 
 
-MStatus ControlMesh::initBaseMeshFromMaya(MObject shapeNode)
+MStatus ControlMesh::initBaseMeshFromMaya(MDagPath meshDagPath)
 {
 	MStatus toMeshStatus;
+	MObject shapeNode = meshDagPath.node();
 	MFnMesh fnMesh(shapeNode, &toMeshStatus); // Fn stands for a function set
 
 	if (MS::kSuccess != toMeshStatus)
@@ -165,7 +181,81 @@ MStatus ControlMesh::initBaseMeshFromMaya(MObject shapeNode)
 		edgeSharpnessLUT[std::pair<int, int>(vids[1], vids[0])] = sharpnesses[i];
 	}
 
-	// TODO: get UVs for displacement mapping
+	// TODO: get UVs and maps for texture/displacement mapping
+	MObjectArray sets, comps; // shading groups and faces connected to each shading group
+
+	fnMesh.getConnectedSetsAndMembers(meshDagPath.instanceNumber(), sets, comps, true);
+	if (sets.length() == 1)
+	{
+		// Only one shading group is supported right now
+		MFnDependencyNode dn(sets[0]);
+		MPlugArray dnInPlugs;
+		MPlug surfaceShaderPlug;
+		MObject shaderNode;
+
+		dn.getConnections(dnInPlugs);
+		if (dnInPlugs.length() != 0)
+		{
+			surfaceShaderPlug = dnInPlugs[0];
+			std::string plugName = surfaceShaderPlug.name().asChar();
+			if (std::string::npos != plugName.find("surfaceShader"))
+			{
+				dnInPlugs.clear();
+				surfaceShaderPlug.connectedTo(dnInPlugs, true, false);
+				if (dnInPlugs.length() == 1)
+				{
+					// Only one shader is supported right now
+					surfaceShaderPlug = dnInPlugs[0];
+
+					MFnDependencyNode shaderDn(surfaceShaderPlug.node());
+					shaderDn.getConnections(dnInPlugs);
+					if (dnInPlugs.length() != 0)
+					{
+						// Has connections to the shader
+						MPlugArray shaderDnInPlugs;
+						int numPlugs = dnInPlugs.length();
+
+						// Each plug should connect to a texture file
+						for (int i = 0; i < numPlugs; ++i)
+						{
+							MPlug plug = dnInPlugs[i];
+							std::string name = plug.name().asChar();
+							plug.connectedTo(shaderDnInPlugs, true, false);
+							int nc = shaderDnInPlugs.length();
+
+							if (nc == 1)
+							{
+								MPlug c = shaderDnInPlugs[0];
+								MObject texNode = c.node();
+								MStatus status;
+								
+								if (std::string::npos != name.find("ambientColor"))
+								{
+									hasDisplacementMap = true;
+									status = dispMap.readFromTextureNode(texNode);
+									if (MS::kSuccess != status)
+									{
+										MGlobal::displayError("Cannot read in displacement map");
+										return status;
+									}
+								}
+								else if (std::string::npos != name.find("color"))
+								{
+									hasTexture = true;
+									status = texMap.readFromTextureNode(texNode);
+									if (MS::kSuccess != status)
+									{
+										MGlobal::displayError("Cannot read in texture map");
+										return status;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 
 	std::shared_ptr<CCLevel> level = std::make_shared<CCLevel>();
 	levels.push_back(level);
@@ -176,6 +266,36 @@ MStatus ControlMesh::initBaseMeshFromMaya(MObject shapeNode)
 						   hasUVs? &vertexUVs : NULL);
 
 	return MS::kSuccess;
+}
+
+
+void ControlMesh::generateGLTextures()
+{
+	auto createGLTexture = [](const MImage &img, GLuint *tex)
+	{
+		unsigned width, height;
+		img.getSize(width, height);
+
+		glGenTextures(1, tex);
+		glBindTexture(GL_TEXTURE_2D, *tex);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, img.pixels());
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, 0); // unbind
+	};
+
+	diffuseMap = std::numeric_limits<GLuint>::max();
+	displacementMap = std::numeric_limits<GLuint>::max();
+
+	if (hasTexture)
+	{
+		createGLTexture(texMap, &diffuseMap);
+	}
+	if (hasDisplacementMap)
+	{
+		createGLTexture(dispMap, &displacementMap);
+	}
 }
 
 

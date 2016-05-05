@@ -10,6 +10,7 @@ layout(std140, binding = 0) uniform cbPerFrame
 
 	vec3 g_vLightDir;                         // 256         16      272
     float g_zfzn;                             // 272         4       276
+	float g_dispIntensity;					  // 276	     4       280
 };
 
 
@@ -22,6 +23,9 @@ layout(std140, binding = 1) uniform cbPerLevel
 	int g_Offset;                             // 16          4       20
 	vec4 g_ObjectColor;                       // 32          16      48
 };
+
+layout (binding = 4) uniform sampler2D diffSampler;
+layout (binding = 5) uniform sampler2D dispSampler;
 
 
 in TES_OUT
@@ -47,7 +51,11 @@ void main()
 void main()
 {
 	vec3 nrm = normalize(fs_in.normal);
+	//vec3 color = vec3(1.0, 1.0, 1.0);
 	vec3 color = g_ObjectColor.xyz;
+	//vec4 tmpColor = texture(diffSampler, fs_in.texCoords);
+	//vec3 color = tmpColor.rgb;
+	
 	float cosTheta = clamp(dot(g_vLightDir, nrm), 0.0, 1.0);
 	
 	vec3 ambient = color * 0.2;
@@ -55,5 +63,8 @@ void main()
 	vec3 specular = vec3(1.0, 1.0, 1.0) * 0.2 * pow(cosTheta, 64.0);
 	
 	frag_color = vec4(ambient + diffuse + specular, 1.0);
-	frag_color = vec4(fs_in.texCoords, 0.0, 1.0);
+	//frag_color = vec4(fs_in.texCoords, 0.0, 1.0);
+	//frag_color = texture(dispSampler, fs_in.texCoords);
+	//frag_color = vec4(vec3(1.0, 0.0, 0.0) - frag_color.xyz * vec3(1.0, 0.0, 0.0) +
+	//				  frag_color.xyz * vec3(0.0, 0.0, 1.0), 1.0);
 }

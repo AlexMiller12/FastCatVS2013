@@ -161,7 +161,6 @@ MStatus FastCatCmd::doIt(const MArgList &args)
 	}
 
 	MDagPath dagPath;
-	MObject node; // a node in the DAG path
 
 	curSel.getDagPath(0, dagPath);
 	if (dagPath.extendToShape() != MS::kSuccess)
@@ -194,14 +193,11 @@ MStatus FastCatCmd::doIt(const MArgList &args)
 	//----------------
 
 
-
-	node = dagPath.node();
-
 	std::shared_ptr<Camera> camera = Camera::createCamera(WINDOW_WIDTH, WINDOW_HEIGHT);
 
 	float baseTessFactor = static_cast<float>(1 << subdLevel);
 	std::shared_ptr<ControlMesh> mesh = std::make_shared<ControlMesh>();
-	mesh->initBaseMeshFromMaya(node);
+	mesh->initBaseMeshFromMaya(dagPath);
 	mesh->maxSubdivisionLevel = ceil(log2(baseTessFactor));
 
 	// create a separate thread for OpenGL rendering
