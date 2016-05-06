@@ -16,7 +16,11 @@ layout(std140, binding = 0) uniform cbPerFrame
 layout (binding = 5) uniform sampler2D dispSampler;
 
 
+#if defined(CASE20) || defined(CASE30) || defined(CASE31) || defined(CASE32) || defined(CASE33) || defined(CASE40) || defined(CASE41)
+layout (quads, fractional_odd_spacing, ccw) in;
+#else
 layout (triangles, fractional_odd_spacing, ccw) in;
+#endif
 
 
 layout(std430, binding = 9) readonly buffer pp_tes_block0
@@ -60,9 +64,75 @@ void evalCubicBSpline(in float u, out float B[4], out float D[4])
 void main()
 {
 	vec2 UV = vec2(0.0, 0.0);
+#ifdef CASE00
+	UV.x = gl_TessCoord.y;
+	UV.y = 1.0 - gl_TessCoord.x - 0.5 * gl_TessCoord.y;
+#endif
+#ifdef CASE01
+	UV.x = 1.0 - gl_TessCoord.x;
+	UV.y = 0.5 * gl_TessCoord.z;
+#endif
+#ifdef CASE02
+	UV.x = 1.0 - gl_TessCoord.x;
+	UV.y = 1.0 - 0.5 * gl_TessCoord.y;
+#endif
+#ifdef CASE10
 	UV.x = 0.5 * gl_TessCoord.x;
 	UV.y = gl_TessCoord.y;
-
+#endif
+#ifdef CASE11
+	UV.x = 1.0 - gl_TessCoord.x;
+	UV.y = 1.0 - 0.5 * gl_TessCoord.y;
+#endif
+#ifdef CASE12
+	UV.x = 1.0 - 0.5 * gl_TessCoord.x;
+	UV.y = 0.5 * gl_TessCoord.z;
+#endif
+#ifdef CASE13
+	UV.x = 0.5 * gl_TessCoord.x + gl_TessCoord.y;
+	UV.y = 0.5 * gl_TessCoord.y + gl_TessCoord.z;
+#endif
+#ifdef CASE20
+	UV.x = 0.5 + 0.5 * gl_TessCoord.x;
+	UV.y = gl_TessCoord.y;
+#endif
+#ifdef CASE21
+	UV.x = 0.5 * gl_TessCoord.x;
+	UV.y = 0.5 * gl_TessCoord.y;
+#endif
+#ifdef CASE22
+	UV.x = 0.5 * gl_TessCoord.x;
+	UV.y = 1.0 - 0.5 * gl_TessCoord.z;
+#endif
+#ifdef CASE23
+	UV.x = 0.5 - 0.5 * gl_TessCoord.x;
+	UV.y = 0.5 * gl_TessCoord.x + gl_TessCoord.z;
+#endif
+#ifdef CASE30
+	UV.x = 0.5 * gl_TessCoord.x;
+	UV.y = 0.5 * gl_TessCoord.y;
+#endif
+#ifdef CASE31
+	UV.x = 0.5 + 0.5 * gl_TessCoord.x;
+	UV.y = 0.5 * gl_TessCoord.y;
+#endif
+#ifdef CASE32
+	UV.x = 0.5 + 0.5 * gl_TessCoord.x;
+	UV.y = 0.5 + 0.5 * gl_TessCoord.y;
+#endif
+#ifdef CASE33
+	UV.x = 0.5 * gl_TessCoord.x;
+	UV.y = 0.5 + 0.5 * gl_TessCoord.y;
+#endif
+#ifdef CASE40
+	UV.x = gl_TessCoord.x;
+	UV.y = 0.5 * gl_TessCoord.y;
+#endif
+#ifdef CASE41
+	UV.x = gl_TessCoord.x;
+	UV.y = 0.5 + 0.5 * gl_TessCoord.y;
+#endif
+	
 	float B[4], D[4];
 	
 	evalCubicBSpline(UV.x, B, D);

@@ -302,8 +302,8 @@ void CCLevel::addSubFaces(Face *parent, int edgePointStart, int vertexPointStart
 			float ep2U = parentUVs[ep2UIdx];
 			float ep2V = parentUVs[ep2VIdx];
 
-			float fpU = parentUVs[2 * (numSubFaces + 1)];
-			float fpV = parentUVs[2 * (numSubFaces + 1) + 1];
+			float fpU = parentUVs[2 * numSubFaces];
+			float fpV = parentUVs[2 * numSubFaces + 1];
 
 			float vpU = parentUVs[2 * i];
 			float vpV = parentUVs[2 * i + 1];

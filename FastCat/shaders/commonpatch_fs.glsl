@@ -64,7 +64,6 @@ void main()
 	
 	frag_color = vec4(ambient + diffuse + specular, 1.0);
 	//frag_color = vec4(fs_in.texCoords, 0.0, 1.0);
-	//frag_color = texture(dispSampler, fs_in.texCoords);
-	//frag_color = vec4(vec3(1.0, 0.0, 0.0) - frag_color.xyz * vec3(1.0, 0.0, 0.0) +
-	//				  frag_color.xyz * vec3(0.0, 0.0, 1.0), 1.0);
+	frag_color = texture(dispSampler, fs_in.texCoords);
+	frag_color = (frag_color - 0.5) * 2.0;
 }

@@ -394,7 +394,7 @@ void FastCatRenderer::testPass()
 	glBindBuffer(GL_ARRAY_BUFFER, controlMesh->vbo);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
 
-	setPerFrameUniformBlock(glm::vec3(1.f, 1.f, 1.f), camera->farClip - camera->nearClip, .0f);
+	setPerFrameUniformBlock(glm::vec3(1.f, 1.f, 1.f), camera->farClip - camera->nearClip, .3f);
 	//setPerFrameUniformBlock(glm::vec3(1.f, 1.f, 1.f), .1f, .1f);
 
 	int numLevels = controlMesh->levels.size();

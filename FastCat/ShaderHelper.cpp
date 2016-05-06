@@ -8,7 +8,8 @@ std::vector<GLuint> ShaderHelper::programs;
 std::unordered_map<GLuint, std::unordered_map<std::string, GLint> > ShaderHelper::uniformLocations;
 
 
-bool ShaderHelper::createProgramWithShaders(const std::vector<GLenum> &types, const std::vector<const char *> &fileNames, GLuint &program)
+bool ShaderHelper::createProgramWithShaders(const std::vector<GLenum> &types, const std::vector<const char *> &fileNames, GLuint &program,
+											const std::vector<std::vector<std::string> > *p_macros)
 {
 	if (types.size() != fileNames.size() || types.empty())
 	{
@@ -22,7 +23,8 @@ bool ShaderHelper::createProgramWithShaders(const std::vector<GLenum> &types, co
 	for (int i = 0; i < numShaders; ++i)
 	{
 		GLuint shader;
-		if (createShaderFromFile(types[i], fileNames[i], shader))
+		if (createShaderFromFile(types[i], fileNames[i], shader,
+								 (p_macros && !(*p_macros)[i].empty())? &(*p_macros)[i] : NULL))
 		{
 			shaders.push_back(shader);
 			glAttachShader(program, shader);
@@ -66,10 +68,24 @@ bool ShaderHelper::createProgramWithShaders(const std::vector<GLenum> &types, co
 }
 
 
-bool ShaderHelper::createShaderFromFile(GLenum type, const char *fileName, GLuint &shader)
+bool ShaderHelper::createShaderFromFile(GLenum type, const char *fileName, GLuint &shader,
+										const std::vector<std::string> *p_macros)
 {
 	std::string shaderSrc;
+	std::string macros = "";
 	readWholeFile(fileName, shaderSrc);
+
+	// Prepend macros if any
+	if (p_macros)
+	{
+		for (int i = 0; i < p_macros->size(); ++i)
+		{
+			macros += "#define ";
+			macros += (*p_macros)[i];
+			macros += '/n';
+		}
+	}
+	shaderSrc = macros + shaderSrc;
 
 	shader = glCreateShader(type);
 	const char *srcRaw = shaderSrc.c_str();

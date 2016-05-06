@@ -13,9 +13,11 @@
 class ShaderHelper
 {
 public:
-	static bool createProgramWithShaders(const std::vector<GLenum> &types, const std::vector<const char *> &fileNames, GLuint &program);
+	static bool createProgramWithShaders(const std::vector<GLenum> &types, const std::vector<const char *> &fileNames, GLuint &program,
+										 const std::vector<std::vector<std::string> > *p_macros = NULL);
 
-	static bool createShaderFromFile(GLenum type, const char *fileName, GLuint &shader);
+	static bool createShaderFromFile(GLenum type, const char *fileName, GLuint &shader,
+									 const std::vector<std::string> *p_macros = NULL);
 
 	static GLint getUniformLocation(GLuint program, const char *_name, bool suppressError = false);
 

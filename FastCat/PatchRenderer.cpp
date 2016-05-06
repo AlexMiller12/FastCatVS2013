@@ -151,7 +151,10 @@ void FullPatchSharpRenderer::changeControlMesh(float btf, std::shared_ptr<Contro
 }
 
 
-void partialPatchCreateProgramHelper(const char *prefix, const char *tcsName, const char *tesName, GLuint *p_program)
+void partialPatchCreateProgramHelper(const char *prefix,
+									 const char *tcsName, const std::vector<std::string> *tcsMacros,
+									 const char *tesName, const std::vector<std::string> *tesMacros,
+									 GLuint *p_program)
 {
 	std::string vsFileName(SHADER_DIR);
 	std::string tcsFileName(SHADER_DIR);
@@ -175,145 +178,286 @@ void partialPatchCreateProgramHelper(const char *prefix, const char *tcsName, co
 	fileNames.push_back(tesFileName.c_str());
 	fileNames.push_back(fsFileName.c_str());
 
-	ShaderHelper::createProgramWithShaders(types, fileNames, *p_program);
+	std::vector<std::vector<std::string> > shaderMacros;
+	shaderMacros.resize(4);
+	shaderMacros[1] = *tcsMacros;
+	shaderMacros[2] = *tesMacros;
+
+	ShaderHelper::createProgramWithShaders(types, fileNames, *p_program, &shaderMacros);
 }
 
 
 void PartialPatchNoSharpCase0::createShaderProgram()
 {
 	programs.resize(3); // case 0 - numTriHeads == 1
+	std::vector<std::string> macros(1);
 
-	partialPatchCreateProgramHelper("/partialpatch_nosharp/", "partialpatch_nosharp_case00_tcs.glsl",
-		"partialpatch_nosharp_case00_tes.glsl", &programs[0]);
-	partialPatchCreateProgramHelper("/partialpatch_nosharp/", "partialpatch_nosharp_case01_tcs.glsl",
-		"partialpatch_nosharp_case01_tes.glsl", &programs[1]);
-	partialPatchCreateProgramHelper("/partialpatch_nosharp/", "partialpatch_nosharp_case02_tcs.glsl",
-		"partialpatch_nosharp_case02_tes.glsl", &programs[2]);
+	macros[0] = "CASE00";
+	partialPatchCreateProgramHelper("/partialpatch_nosharp/",
+		"partialpatch_nosharp_tcs.glsl", &macros,
+		"partialpatch_nosharp_tes.glsl", &macros,
+		&programs[0]);
+
+	macros[0] = "CASE01";
+	partialPatchCreateProgramHelper("/partialpatch_nosharp/",
+		"partialpatch_nosharp_tcs.glsl", &macros,
+		"partialpatch_nosharp_tes.glsl", &macros,
+		&programs[1]);
+
+	macros[0] = "CASE02";
+	partialPatchCreateProgramHelper("/partialpatch_nosharp/",
+		"partialpatch_nosharp_tcs.glsl", &macros,
+		"partialpatch_nosharp_tes.glsl", &macros,
+		&programs[2]);
 }
 
 
 void PartialPatchNoSharpCase1::createShaderProgram()
 {
 	programs.resize(4); // case 1 - numTriHeads == 2 && isConnected
+	std::vector<std::string> macros(1);
 
-	partialPatchCreateProgramHelper("/partialpatch_nosharp/", "partialpatch_nosharp_case10_tcs.glsl",
-		"partialpatch_nosharp_case10_tes.glsl", &programs[0]);
-	partialPatchCreateProgramHelper("/partialpatch_nosharp/", "partialpatch_nosharp_case11_tcs.glsl",
-		"partialpatch_nosharp_case11_tes.glsl", &programs[1]);
-	partialPatchCreateProgramHelper("/partialpatch_nosharp/", "partialpatch_nosharp_case12_tcs.glsl",
-		"partialpatch_nosharp_case12_tes.glsl", &programs[2]);
-	partialPatchCreateProgramHelper("/partialpatch_nosharp/", "partialpatch_nosharp_case13_tcs.glsl",
-		"partialpatch_nosharp_case13_tes.glsl", &programs[3]);
+	macros[0] = "CASE10";
+	partialPatchCreateProgramHelper("/partialpatch_nosharp/",
+		"partialpatch_nosharp_tcs.glsl", &macros,
+		"partialpatch_nosharp_tes.glsl", &macros,
+		&programs[0]);
+
+	macros[0] = "CASE11";
+	partialPatchCreateProgramHelper("/partialpatch_nosharp/",
+		"partialpatch_nosharp_tcs.glsl", &macros,
+		"partialpatch_nosharp_tes.glsl", &macros,
+		&programs[1]);
+
+	macros[0] = "CASE12";
+	partialPatchCreateProgramHelper("/partialpatch_nosharp/",
+		"partialpatch_nosharp_tcs.glsl", &macros,
+		"partialpatch_nosharp_tes.glsl", &macros,
+		&programs[2]);
+
+	macros[0] = "CASE13";
+	partialPatchCreateProgramHelper("/partialpatch_nosharp/",
+		"partialpatch_nosharp_tcs.glsl", &macros,
+		"partialpatch_nosharp_tes.glsl", &macros,
+		&programs[3]);
 }
 
 
 void PartialPatchNoSharpCase2::createShaderProgram()
 {
 	programs.resize(4); // case 2 - numTriHeads == 3
+	std::vector<std::string> macros(1);
 
-	partialPatchCreateProgramHelper("/partialpatch_nosharp/", "partialpatch_nosharp_case20_tcs.glsl",
-		"partialpatch_nosharp_case20_tes.glsl", &programs[0]);
-	partialPatchCreateProgramHelper("/partialpatch_nosharp/", "partialpatch_nosharp_case21_tcs.glsl",
-		"partialpatch_nosharp_case21_tes.glsl", &programs[1]);
-	partialPatchCreateProgramHelper("/partialpatch_nosharp/", "partialpatch_nosharp_case22_tcs.glsl",
-		"partialpatch_nosharp_case22_tes.glsl", &programs[2]);
-	partialPatchCreateProgramHelper("/partialpatch_nosharp/", "partialpatch_nosharp_case23_tcs.glsl",
-		"partialpatch_nosharp_case23_tes.glsl", &programs[3]);
+	macros[0] = "CASE20";
+	partialPatchCreateProgramHelper("/partialpatch_nosharp/",
+		"partialpatch_nosharp_tcs.glsl", &macros,
+		"partialpatch_nosharp_tes.glsl", &macros,
+		&programs[0]);
+
+	macros[0] = "CASE21";
+	partialPatchCreateProgramHelper("/partialpatch_nosharp/",
+		"partialpatch_nosharp_tcs.glsl", &macros,
+		"partialpatch_nosharp_tes.glsl", &macros,
+		&programs[1]);
+
+	macros[0] = "CASE22";
+	partialPatchCreateProgramHelper("/partialpatch_nosharp/",
+		"partialpatch_nosharp_tcs.glsl", &macros,
+		"partialpatch_nosharp_tes.glsl", &macros,
+		&programs[2]);
+
+	macros[0] = "CASE23";
+	partialPatchCreateProgramHelper("/partialpatch_nosharp/",
+		"partialpatch_nosharp_tcs.glsl", &macros,
+		"partialpatch_nosharp_tes.glsl", &macros,
+		&programs[3]);
 }
 
 
 void PartialPatchNoSharpCase3::createShaderProgram()
 {
 	programs.resize(4); // case 3 - numTriHeads == 4
+	std::vector<std::string> macros(1);
 
-	partialPatchCreateProgramHelper("/partialpatch_nosharp/", "partialpatch_nosharp_case30_tcs.glsl",
-		"partialpatch_nosharp_case30_tes.glsl", &programs[0]);
-	partialPatchCreateProgramHelper("/partialpatch_nosharp/", "partialpatch_nosharp_case30_tcs.glsl",
-		"partialpatch_nosharp_case31_tes.glsl", &programs[1]);
-	partialPatchCreateProgramHelper("/partialpatch_nosharp/", "partialpatch_nosharp_case30_tcs.glsl",
-		"partialpatch_nosharp_case32_tes.glsl", &programs[2]);
-	partialPatchCreateProgramHelper("/partialpatch_nosharp/", "partialpatch_nosharp_case30_tcs.glsl",
-		"partialpatch_nosharp_case33_tes.glsl", &programs[3]);
+	macros[0] = "CASE30";
+	partialPatchCreateProgramHelper("/partialpatch_nosharp/",
+		"partialpatch_nosharp_tcs.glsl", &macros,
+		"partialpatch_nosharp_tes.glsl", &macros,
+		&programs[0]);
+
+	macros[0] = "CASE31";
+	partialPatchCreateProgramHelper("/partialpatch_nosharp/",
+		"partialpatch_nosharp_tcs.glsl", &macros,
+		"partialpatch_nosharp_tes.glsl", &macros,
+		&programs[1]);
+
+	macros[0] = "CASE32";
+	partialPatchCreateProgramHelper("/partialpatch_nosharp/",
+		"partialpatch_nosharp_tcs.glsl", &macros,
+		"partialpatch_nosharp_tes.glsl", &macros,
+		&programs[2]);
+
+	macros[0] = "CASE33";
+	partialPatchCreateProgramHelper("/partialpatch_nosharp/",
+		"partialpatch_nosharp_tcs.glsl", &macros,
+		"partialpatch_nosharp_tes.glsl", &macros,
+		&programs[3]);
 }
 
 
 void PartialPatchNoSharpCase4::createShaderProgram()
 {
 	programs.resize(2); // case 4 - numTriHeads == 2 && !isConnected
+	std::vector<std::string> macros(1);
 
-	partialPatchCreateProgramHelper("/partialpatch_nosharp/", "partialpatch_nosharp_case40_tcs.glsl",
-		"partialpatch_nosharp_case40_tes.glsl", &programs[0]);
-	partialPatchCreateProgramHelper("/partialpatch_nosharp/", "partialpatch_nosharp_case40_tcs.glsl",
-		"partialpatch_nosharp_case41_tes.glsl", &programs[1]);
+	macros[0] = "CASE40";
+	partialPatchCreateProgramHelper("/partialpatch_nosharp/",
+		"partialpatch_nosharp_tcs.glsl", &macros,
+		"partialpatch_nosharp_tes.glsl", &macros,
+		&programs[0]);
+
+	macros[0] = "CASE41";
+	partialPatchCreateProgramHelper("/partialpatch_nosharp/",
+		"partialpatch_nosharp_tcs.glsl", &macros,
+		"partialpatch_nosharp_tes.glsl", &macros,
+		&programs[1]);
 }
 
 
 void PartialPatchSharpCase0::createShaderProgram()
 {
 	programs.resize(3); // case 0 - numTriHeads == 1
+	std::vector<std::string> macros(1);
 
-	partialPatchCreateProgramHelper("/partialpatch_sharp/", "partialpatch_sharp_case00_tcs.glsl",
-		"partialpatch_sharp_case00_tes.glsl", &programs[0]);
-	partialPatchCreateProgramHelper("/partialpatch_sharp/", "partialpatch_sharp_case01_tcs.glsl",
-		"partialpatch_sharp_case01_tes.glsl", &programs[1]);
-	partialPatchCreateProgramHelper("/partialpatch_sharp/", "partialpatch_sharp_case02_tcs.glsl",
-		"partialpatch_sharp_case02_tes.glsl", &programs[2]);
+	macros[0] = "CASE00";
+	partialPatchCreateProgramHelper("/partialpatch_sharp/",
+		"partialpatch_sharp_tcs.glsl", &macros,
+		"partialpatch_sharp_tes.glsl", &macros,
+		&programs[0]);
+
+	macros[0] = "CASE01";
+	partialPatchCreateProgramHelper("/partialpatch_sharp/",
+		"partialpatch_sharp_tcs.glsl", &macros,
+		"partialpatch_sharp_tes.glsl", &macros,
+		&programs[1]);
+
+	macros[0] = "CASE02";
+	partialPatchCreateProgramHelper("/partialpatch_sharp/",
+		"partialpatch_sharp_tcs.glsl", &macros,
+		"partialpatch_sharp_tes.glsl", &macros,
+		&programs[2]);
 }
 
 
 void PartialPatchSharpCase1::createShaderProgram()
 {
 	programs.resize(4); // case 1 - numTriHeads == 2 && isConnected
+	std::vector<std::string> macros(1);
 
-	partialPatchCreateProgramHelper("/partialpatch_sharp/", "partialpatch_sharp_case10_tcs.glsl",
-		"partialpatch_sharp_case10_tes.glsl", &programs[0]);
-	partialPatchCreateProgramHelper("/partialpatch_sharp/", "partialpatch_sharp_case11_tcs.glsl",
-		"partialpatch_sharp_case11_tes.glsl", &programs[1]);
-	partialPatchCreateProgramHelper("/partialpatch_sharp/", "partialpatch_sharp_case12_tcs.glsl",
-		"partialpatch_sharp_case12_tes.glsl", &programs[2]);
-	partialPatchCreateProgramHelper("/partialpatch_sharp/", "partialpatch_sharp_case13_tcs.glsl",
-		"partialpatch_sharp_case13_tes.glsl", &programs[3]);
+	macros[0] = "CASE10";
+	partialPatchCreateProgramHelper("/partialpatch_sharp/",
+		"partialpatch_sharp_tcs.glsl", &macros,
+		"partialpatch_sharp_tes.glsl", &macros,
+		&programs[0]);
+
+	macros[0] = "CASE11";
+	partialPatchCreateProgramHelper("/partialpatch_sharp/",
+		"partialpatch_sharp_tcs.glsl", &macros,
+		"partialpatch_sharp_tes.glsl", &macros,
+		&programs[1]);
+
+	macros[0] = "CASE12";
+	partialPatchCreateProgramHelper("/partialpatch_sharp/",
+		"partialpatch_sharp_tcs.glsl", &macros,
+		"partialpatch_sharp_tes.glsl", &macros,
+		&programs[2]);
+
+	macros[0] = "CASE13";
+	partialPatchCreateProgramHelper("/partialpatch_sharp/",
+		"partialpatch_sharp_tcs.glsl", &macros,
+		"partialpatch_sharp_tes.glsl", &macros,
+		&programs[3]);
 }
 
 
 void PartialPatchSharpCase2::createShaderProgram()
 {
 	programs.resize(4); // case 2 - numTriHeads == 3
+	std::vector<std::string> macros(1);
 
-	partialPatchCreateProgramHelper("/partialpatch_sharp/", "partialpatch_sharp_case20_tcs.glsl",
-		"partialpatch_sharp_case20_tes.glsl", &programs[0]);
-	partialPatchCreateProgramHelper("/partialpatch_sharp/", "partialpatch_sharp_case21_tcs.glsl",
-		"partialpatch_sharp_case21_tes.glsl", &programs[1]);
-	partialPatchCreateProgramHelper("/partialpatch_sharp/", "partialpatch_sharp_case22_tcs.glsl",
-		"partialpatch_sharp_case22_tes.glsl", &programs[2]);
-	partialPatchCreateProgramHelper("/partialpatch_sharp/", "partialpatch_sharp_case23_tcs.glsl",
-		"partialpatch_sharp_case23_tes.glsl", &programs[3]);
+	macros[0] = "CASE20";
+	partialPatchCreateProgramHelper("/partialpatch_sharp/",
+		"partialpatch_sharp_tcs.glsl", &macros,
+		"partialpatch_sharp_tes.glsl", &macros,
+		&programs[0]);
+
+	macros[0] = "CASE21";
+	partialPatchCreateProgramHelper("/partialpatch_sharp/",
+		"partialpatch_sharp_tcs.glsl", &macros,
+		"partialpatch_sharp_tes.glsl", &macros,
+		&programs[1]);
+
+	macros[0] = "CASE22";
+	partialPatchCreateProgramHelper("/partialpatch_sharp/",
+		"partialpatch_sharp_tcs.glsl", &macros,
+		"partialpatch_sharp_tes.glsl", &macros,
+		&programs[2]);
+
+	macros[0] = "CASE23";
+	partialPatchCreateProgramHelper("/partialpatch_sharp/",
+		"partialpatch_sharp_tcs.glsl", &macros,
+		"partialpatch_sharp_tes.glsl", &macros,
+		&programs[3]);
 }
 
 
 void PartialPatchSharpCase3::createShaderProgram()
 {
 	programs.resize(4); // case 3 - numTriHeads == 4
+	std::vector<std::string> macros(1);
 
-	partialPatchCreateProgramHelper("/partialpatch_sharp/", "partialpatch_sharp_case30_tcs.glsl",
-		"partialpatch_sharp_case30_tes.glsl", &programs[0]);
-	partialPatchCreateProgramHelper("/partialpatch_sharp/", "partialpatch_sharp_case30_tcs.glsl",
-		"partialpatch_sharp_case31_tes.glsl", &programs[1]);
-	partialPatchCreateProgramHelper("/partialpatch_sharp/", "partialpatch_sharp_case30_tcs.glsl",
-		"partialpatch_sharp_case32_tes.glsl", &programs[2]);
-	partialPatchCreateProgramHelper("/partialpatch_sharp/", "partialpatch_sharp_case30_tcs.glsl",
-		"partialpatch_sharp_case33_tes.glsl", &programs[3]);
+	macros[0] = "CASE30";
+	partialPatchCreateProgramHelper("/partialpatch_sharp/",
+		"partialpatch_sharp_tcs.glsl", &macros,
+		"partialpatch_sharp_tes.glsl", &macros,
+		&programs[0]);
+
+	macros[0] = "CASE31";
+	partialPatchCreateProgramHelper("/partialpatch_sharp/",
+		"partialpatch_sharp_tcs.glsl", &macros,
+		"partialpatch_sharp_tes.glsl", &macros,
+		&programs[1]);
+
+	macros[0] = "CASE32";
+	partialPatchCreateProgramHelper("/partialpatch_sharp/",
+		"partialpatch_sharp_tcs.glsl", &macros,
+		"partialpatch_sharp_tes.glsl", &macros,
+		&programs[2]);
+
+	macros[0] = "CASE33";
+	partialPatchCreateProgramHelper("/partialpatch_sharp/",
+		"partialpatch_sharp_tcs.glsl", &macros,
+		"partialpatch_sharp_tes.glsl", &macros,
+		&programs[3]);
 }
 
 
 void PartialPatchSharpCase4::createShaderProgram()
 {
 	programs.resize(2); // case 4 - numTriHeads == 2 && !isConnected
+	std::vector<std::string> macros(1);
 
-	partialPatchCreateProgramHelper("/partialpatch_sharp/", "partialpatch_sharp_case40_tcs.glsl",
-		"partialpatch_sharp_case40_tes.glsl", &programs[0]);
-	partialPatchCreateProgramHelper("/partialpatch_sharp/", "partialpatch_sharp_case40_tcs.glsl",
-		"partialpatch_sharp_case41_tes.glsl", &programs[1]);
+	macros[0] = "CASE40";
+	partialPatchCreateProgramHelper("/partialpatch_sharp/",
+		"partialpatch_sharp_tcs.glsl", &macros,
+		"partialpatch_sharp_tes.glsl", &macros,
+		&programs[0]);
+
+	macros[0] = "CASE41";
+	partialPatchCreateProgramHelper("/partialpatch_sharp/",
+		"partialpatch_sharp_tcs.glsl", &macros,
+		"partialpatch_sharp_tes.glsl", &macros,
+		&programs[1]);
 }
 
 
